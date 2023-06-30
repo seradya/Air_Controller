@@ -1,0 +1,193 @@
+ARM GAS  /tmp/ccYsZX24.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.arch armv7-m
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"encoder.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.Encoder_Init,"ax",%progbits
+  18              		.align	1
+  19              		.global	Encoder_Init
+  20              		.syntax unified
+  21              		.thumb
+  22              		.thumb_func
+  24              	Encoder_Init:
+  25              	.LFB65:
+  26              		.file 1 "Core/Src/encoder.c"
+   1:Core/Src/encoder.c **** /*
+   2:Core/Src/encoder.c ****  * Encoder.c
+   3:Core/Src/encoder.c ****  *
+   4:Core/Src/encoder.c ****  *  Created on: 27 сент. 2022 г.
+   5:Core/Src/encoder.c ****  *      Author: serad
+   6:Core/Src/encoder.c ****  */
+   7:Core/Src/encoder.c **** 
+   8:Core/Src/encoder.c **** #include <encoder.h>
+   9:Core/Src/encoder.c **** 
+  10:Core/Src/encoder.c **** void Encoder_Init(void) {
+  27              		.loc 1 10 25 view -0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31 0000 10B5     		push	{r4, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 4, -8
+  35              		.cfi_offset 14, -4
+  11:Core/Src/encoder.c **** 	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+  36              		.loc 1 11 2 view .LVU1
+  37 0002 094C     		ldr	r4, .L3
+  38 0004 3C21     		movs	r1, #60
+  39 0006 2046     		mov	r0, r4
+  40 0008 FFF7FEFF 		bl	HAL_TIM_Encoder_Start
+  41              	.LVL0:
+  12:Core/Src/encoder.c **** 	__HAL_TIM_SET_COUNTER(&htim3, 32768);
+  42              		.loc 1 12 2 view .LVU2
+  43 000c 2368     		ldr	r3, [r4]
+  44 000e 4FF40042 		mov	r2, #32768
+  45 0012 5A62     		str	r2, [r3, #36]
+  13:Core/Src/encoder.c **** 	cnt1 = __HAL_TIM_GET_COUNTER(&htim3)>>1;
+ARM GAS  /tmp/ccYsZX24.s 			page 2
+
+
+  46              		.loc 1 13 2 view .LVU3
+  47              		.loc 1 13 9 is_stmt 0 view .LVU4
+  48 0014 5A6A     		ldr	r2, [r3, #36]
+  49              		.loc 1 13 38 view .LVU5
+  50 0016 5208     		lsrs	r2, r2, #1
+  51              		.loc 1 13 7 view .LVU6
+  52 0018 0449     		ldr	r1, .L3+4
+  53 001a 0A60     		str	r2, [r1]
+  14:Core/Src/encoder.c **** 	cnt2 = __HAL_TIM_GET_COUNTER(&htim3)>>1;
+  54              		.loc 1 14 2 is_stmt 1 view .LVU7
+  55              		.loc 1 14 9 is_stmt 0 view .LVU8
+  56 001c 5B6A     		ldr	r3, [r3, #36]
+  57              		.loc 1 14 38 view .LVU9
+  58 001e 5B08     		lsrs	r3, r3, #1
+  59              		.loc 1 14 7 view .LVU10
+  60 0020 034A     		ldr	r2, .L3+8
+  61 0022 1360     		str	r3, [r2]
+  15:Core/Src/encoder.c **** };
+  62              		.loc 1 15 1 view .LVU11
+  63 0024 10BD     		pop	{r4, pc}
+  64              	.L4:
+  65 0026 00BF     		.align	2
+  66              	.L3:
+  67 0028 00000000 		.word	htim3
+  68 002c 00000000 		.word	.LANCHOR0
+  69 0030 00000000 		.word	.LANCHOR1
+  70              		.cfi_endproc
+  71              	.LFE65:
+  73              		.section	.text.Enc_val,"ax",%progbits
+  74              		.align	1
+  75              		.global	Enc_val
+  76              		.syntax unified
+  77              		.thumb
+  78              		.thumb_func
+  80              	Enc_val:
+  81              	.LFB66:
+  16:Core/Src/encoder.c **** 
+  17:Core/Src/encoder.c **** int16_t Enc_val(void) {
+  82              		.loc 1 17 23 is_stmt 1 view -0
+  83              		.cfi_startproc
+  84              		@ args = 0, pretend = 0, frame = 0
+  85              		@ frame_needed = 0, uses_anonymous_args = 0
+  86              		@ link register save eliminated.
+  18:Core/Src/encoder.c **** 	cnt2 = (__HAL_TIM_GET_COUNTER(&htim3)>>1);
+  87              		.loc 1 18 2 view .LVU13
+  88              		.loc 1 18 10 is_stmt 0 view .LVU14
+  89 0000 064B     		ldr	r3, .L6
+  90 0002 1B68     		ldr	r3, [r3]
+  91 0004 5B6A     		ldr	r3, [r3, #36]
+  92              		.loc 1 18 39 view .LVU15
+  93 0006 5B08     		lsrs	r3, r3, #1
+  94              		.loc 1 18 7 view .LVU16
+  95 0008 054A     		ldr	r2, .L6+4
+  96 000a 1360     		str	r3, [r2]
+  19:Core/Src/encoder.c **** 	value = cnt2 - cnt1;
+  97              		.loc 1 19 2 is_stmt 1 view .LVU17
+  98              		.loc 1 19 15 is_stmt 0 view .LVU18
+ARM GAS  /tmp/ccYsZX24.s 			page 3
+
+
+  99 000c 054A     		ldr	r2, .L6+8
+ 100 000e 1068     		ldr	r0, [r2]
+ 101 0010 181A     		subs	r0, r3, r0
+ 102 0012 00B2     		sxth	r0, r0
+ 103              		.loc 1 19 8 view .LVU19
+ 104 0014 0449     		ldr	r1, .L6+12
+ 105 0016 0880     		strh	r0, [r1]	@ movhi
+  20:Core/Src/encoder.c **** 	cnt1 = cnt2;
+ 106              		.loc 1 20 2 is_stmt 1 view .LVU20
+ 107              		.loc 1 20 7 is_stmt 0 view .LVU21
+ 108 0018 1360     		str	r3, [r2]
+  21:Core/Src/encoder.c **** 	return value;
+ 109              		.loc 1 21 2 is_stmt 1 view .LVU22
+  22:Core/Src/encoder.c **** }
+ 110              		.loc 1 22 1 is_stmt 0 view .LVU23
+ 111 001a 7047     		bx	lr
+ 112              	.L7:
+ 113              		.align	2
+ 114              	.L6:
+ 115 001c 00000000 		.word	htim3
+ 116 0020 00000000 		.word	.LANCHOR1
+ 117 0024 00000000 		.word	.LANCHOR0
+ 118 0028 00000000 		.word	.LANCHOR2
+ 119              		.cfi_endproc
+ 120              	.LFE66:
+ 122              		.section	.bss.cnt1,"aw",%nobits
+ 123              		.align	2
+ 124              		.set	.LANCHOR0,. + 0
+ 127              	cnt1:
+ 128 0000 00000000 		.space	4
+ 129              		.section	.bss.cnt2,"aw",%nobits
+ 130              		.align	2
+ 131              		.set	.LANCHOR1,. + 0
+ 134              	cnt2:
+ 135 0000 00000000 		.space	4
+ 136              		.section	.bss.value,"aw",%nobits
+ 137              		.align	1
+ 138              		.set	.LANCHOR2,. + 0
+ 141              	value:
+ 142 0000 0000     		.space	2
+ 143              		.text
+ 144              	.Letext0:
+ 145              		.file 2 "/home/seradya/toolchains/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_de
+ 146              		.file 3 "/home/seradya/toolchains/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint
+ 147              		.file 4 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
+ 148              		.file 5 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
+ 149              		.file 6 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h"
+ 150              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h"
+ 151              		.file 8 "Core/Inc/encoder.h"
+ARM GAS  /tmp/ccYsZX24.s 			page 4
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 encoder.c
+     /tmp/ccYsZX24.s:18     .text.Encoder_Init:0000000000000000 $t
+     /tmp/ccYsZX24.s:24     .text.Encoder_Init:0000000000000000 Encoder_Init
+     /tmp/ccYsZX24.s:67     .text.Encoder_Init:0000000000000028 $d
+     /tmp/ccYsZX24.s:74     .text.Enc_val:0000000000000000 $t
+     /tmp/ccYsZX24.s:80     .text.Enc_val:0000000000000000 Enc_val
+     /tmp/ccYsZX24.s:115    .text.Enc_val:000000000000001c $d
+     /tmp/ccYsZX24.s:123    .bss.cnt1:0000000000000000 $d
+     /tmp/ccYsZX24.s:127    .bss.cnt1:0000000000000000 cnt1
+     /tmp/ccYsZX24.s:130    .bss.cnt2:0000000000000000 $d
+     /tmp/ccYsZX24.s:134    .bss.cnt2:0000000000000000 cnt2
+     /tmp/ccYsZX24.s:137    .bss.value:0000000000000000 $d
+     /tmp/ccYsZX24.s:141    .bss.value:0000000000000000 value
+
+UNDEFINED SYMBOLS
+HAL_TIM_Encoder_Start
+htim3

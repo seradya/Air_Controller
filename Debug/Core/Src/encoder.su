@@ -1,0 +1,2 @@
+../Core/Src/encoder.c:10:6:Encoder_Init	8	static
+../Core/Src/encoder.c:17:9:Enc_val	4	static

@@ -1,0 +1,2 @@
+../Core/Src/display.c:9:6:Display_Init	8	static
+../Core/Src/display.c:17:6:Main_Screen	128	static

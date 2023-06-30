@@ -1,0 +1,2097 @@
+ARM GAS  /tmp/ccq8oCVq.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.arch armv7-m
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"NRF24.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.NRF24_ReadReg,"ax",%progbits
+  18              		.align	1
+  19              		.global	NRF24_ReadReg
+  20              		.syntax unified
+  21              		.thumb
+  22              		.thumb_func
+  24              	NRF24_ReadReg:
+  25              	.LVL0:
+  26              	.LFB66:
+  27              		.file 1 "Core/Src/NRF24.c"
+   1:Core/Src/NRF24.c **** /*
+   2:Core/Src/NRF24.c ****  * NRF24.c
+   3:Core/Src/NRF24.c ****  *
+   4:Core/Src/NRF24.c ****  *  Created on: 16 окт. 2022 г.
+   5:Core/Src/NRF24.c ****  *      Author: serad
+   6:Core/Src/NRF24.c ****  */
+   7:Core/Src/NRF24.c **** 
+   8:Core/Src/NRF24.c **** 
+   9:Core/Src/NRF24.c **** #include "NRF24.h"
+  10:Core/Src/NRF24.c **** 
+  11:Core/Src/NRF24.c **** //------------------------------------------------
+  12:Core/Src/NRF24.c **** 
+  13:Core/Src/NRF24.c **** extern SPI_HandleTypeDef hspi1;
+  14:Core/Src/NRF24.c **** 
+  15:Core/Src/NRF24.c **** extern uint32_t pressure[4];
+  16:Core/Src/NRF24.c **** 
+  17:Core/Src/NRF24.c **** //------------------------------------------------
+  18:Core/Src/NRF24.c **** 
+  19:Core/Src/NRF24.c **** #define TX_ADR_WIDTH 3 // Address width
+  20:Core/Src/NRF24.c **** 
+  21:Core/Src/NRF24.c **** #define RX_ADR_WIDTH 1 // Address width
+  22:Core/Src/NRF24.c **** 
+  23:Core/Src/NRF24.c **** #define TX_PLOAD_WIDTH 5 // Data width
+  24:Core/Src/NRF24.c **** 
+  25:Core/Src/NRF24.c **** uint8_t TX_ADDRESS[TX_ADR_WIDTH] = {0xC1,0xb3,0xb4};
+  26:Core/Src/NRF24.c **** uint8_t RX_ADDRESS_P1[RX_ADR_WIDTH] = {0xC2};
+  27:Core/Src/NRF24.c **** uint8_t RX_ADDRESS_P2[RX_ADR_WIDTH] = {0xC3};
+  28:Core/Src/NRF24.c **** uint8_t RX_ADDRESS_P3[RX_ADR_WIDTH] = {0xC4};
+  29:Core/Src/NRF24.c **** uint8_t RX_ADDRESS_P4[RX_ADR_WIDTH] = {0xC5};
+  30:Core/Src/NRF24.c **** uint8_t RX_ADDRESS_P5[RX_ADR_WIDTH] = {0xC6};
+  31:Core/Src/NRF24.c **** 
+ARM GAS  /tmp/ccq8oCVq.s 			page 2
+
+
+  32:Core/Src/NRF24.c **** 
+  33:Core/Src/NRF24.c **** uint8_t RX_BUF[TX_PLOAD_WIDTH] = {0};
+  34:Core/Src/NRF24.c **** 
+  35:Core/Src/NRF24.c **** //extern char str1[150];
+  36:Core/Src/NRF24.c **** 
+  37:Core/Src/NRF24.c **** 
+  38:Core/Src/NRF24.c **** uint8_t ErrCnt_Fl = 0;
+  39:Core/Src/NRF24.c **** 
+  40:Core/Src/NRF24.c **** //------------------------------------------------
+  41:Core/Src/NRF24.c **** 
+  42:Core/Src/NRF24.c **** __STATIC_INLINE void DelayMicro(__IO uint32_t micros)
+  43:Core/Src/NRF24.c **** 
+  44:Core/Src/NRF24.c **** {
+  45:Core/Src/NRF24.c **** 
+  46:Core/Src/NRF24.c ****   micros *= (SystemCoreClock / 1000000) / 6;
+  47:Core/Src/NRF24.c **** 
+  48:Core/Src/NRF24.c ****   /* Wait till done */
+  49:Core/Src/NRF24.c **** 
+  50:Core/Src/NRF24.c ****   while (micros--) ;
+  51:Core/Src/NRF24.c **** 
+  52:Core/Src/NRF24.c **** }
+  53:Core/Src/NRF24.c **** 
+  54:Core/Src/NRF24.c **** //--------------------------------------------------
+  55:Core/Src/NRF24.c **** 
+  56:Core/Src/NRF24.c **** uint8_t NRF24_ReadReg(uint8_t addr)
+  57:Core/Src/NRF24.c **** 
+  58:Core/Src/NRF24.c **** {
+  28              		.loc 1 58 1 view -0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 16
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		.loc 1 58 1 is_stmt 0 view .LVU1
+  33 0000 00B5     		push	{lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 4
+  36              		.cfi_offset 14, -4
+  37 0002 87B0     		sub	sp, sp, #28
+  38              	.LCFI1:
+  39              		.cfi_def_cfa_offset 32
+  40 0004 8DF80F00 		strb	r0, [sp, #15]
+  59:Core/Src/NRF24.c **** 
+  60:Core/Src/NRF24.c ****   uint8_t dt=0, cmd;
+  41              		.loc 1 60 3 is_stmt 1 view .LVU2
+  42              		.loc 1 60 11 is_stmt 0 view .LVU3
+  43 0008 0022     		movs	r2, #0
+  44 000a 8DF81720 		strb	r2, [sp, #23]
+  61:Core/Src/NRF24.c **** 
+  62:Core/Src/NRF24.c ****   CS_ON;
+  45              		.loc 1 62 3 is_stmt 1 view .LVU4
+  46 000e 1021     		movs	r1, #16
+  47 0010 1548     		ldr	r0, .L5
+  48              	.LVL1:
+  49              		.loc 1 62 3 is_stmt 0 view .LVU5
+  50 0012 FFF7FEFF 		bl	HAL_GPIO_WritePin
+  51              	.LVL2:
+  63:Core/Src/NRF24.c **** 
+  64:Core/Src/NRF24.c ****   HAL_SPI_TransmitReceive(&hspi1,&addr,&dt,1,1000);
+ARM GAS  /tmp/ccq8oCVq.s 			page 3
+
+
+  52              		.loc 1 64 3 is_stmt 1 view .LVU6
+  53 0016 4FF47A73 		mov	r3, #1000
+  54 001a 0093     		str	r3, [sp]
+  55 001c 0123     		movs	r3, #1
+  56 001e 0DF11702 		add	r2, sp, #23
+  57 0022 0DF10F01 		add	r1, sp, #15
+  58 0026 1148     		ldr	r0, .L5+4
+  59 0028 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+  60              	.LVL3:
+  65:Core/Src/NRF24.c **** 
+  66:Core/Src/NRF24.c ****   if (addr!=STATUS)//если адрес равен адрес регистра статус то �
+  61              		.loc 1 66 3 view .LVU7
+  62              		.loc 1 66 11 is_stmt 0 view .LVU8
+  63 002c 9DF80F30 		ldrb	r3, [sp, #15]	@ zero_extendqisi2
+  64              		.loc 1 66 6 view .LVU9
+  65 0030 072B     		cmp	r3, #7
+  66 0032 09D1     		bne	.L4
+  67              	.L2:
+  67:Core/Src/NRF24.c **** 
+  68:Core/Src/NRF24.c ****   {
+  69:Core/Src/NRF24.c **** 
+  70:Core/Src/NRF24.c ****     cmd=0xFF;
+  71:Core/Src/NRF24.c **** 
+  72:Core/Src/NRF24.c ****     HAL_SPI_TransmitReceive(&hspi1,&cmd,&dt,1,1000);
+  73:Core/Src/NRF24.c **** 
+  74:Core/Src/NRF24.c ****   }
+  75:Core/Src/NRF24.c **** 
+  76:Core/Src/NRF24.c ****   CS_OFF;
+  68              		.loc 1 76 3 is_stmt 1 view .LVU10
+  69 0034 0122     		movs	r2, #1
+  70 0036 1021     		movs	r1, #16
+  71 0038 0B48     		ldr	r0, .L5
+  72 003a FFF7FEFF 		bl	HAL_GPIO_WritePin
+  73              	.LVL4:
+  77:Core/Src/NRF24.c **** 
+  78:Core/Src/NRF24.c ****   return dt;
+  74              		.loc 1 78 3 view .LVU11
+  79:Core/Src/NRF24.c **** 
+  80:Core/Src/NRF24.c **** }
+  75              		.loc 1 80 1 is_stmt 0 view .LVU12
+  76 003e 9DF81700 		ldrb	r0, [sp, #23]	@ zero_extendqisi2
+  77 0042 07B0     		add	sp, sp, #28
+  78              	.LCFI2:
+  79              		.cfi_remember_state
+  80              		.cfi_def_cfa_offset 4
+  81              		@ sp needed
+  82 0044 5DF804FB 		ldr	pc, [sp], #4
+  83              	.L4:
+  84              	.LCFI3:
+  85              		.cfi_restore_state
+  70:Core/Src/NRF24.c **** 
+  86              		.loc 1 70 5 is_stmt 1 view .LVU13
+  70:Core/Src/NRF24.c **** 
+  87              		.loc 1 70 8 is_stmt 0 view .LVU14
+  88 0048 FF23     		movs	r3, #255
+  89 004a 8DF81630 		strb	r3, [sp, #22]
+  72:Core/Src/NRF24.c **** 
+ARM GAS  /tmp/ccq8oCVq.s 			page 4
+
+
+  90              		.loc 1 72 5 is_stmt 1 view .LVU15
+  91 004e 4FF47A73 		mov	r3, #1000
+  92 0052 0093     		str	r3, [sp]
+  93 0054 0123     		movs	r3, #1
+  94 0056 0DF11702 		add	r2, sp, #23
+  95 005a 0DF11601 		add	r1, sp, #22
+  96 005e 0348     		ldr	r0, .L5+4
+  97 0060 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+  98              	.LVL5:
+  99 0064 E6E7     		b	.L2
+ 100              	.L6:
+ 101 0066 00BF     		.align	2
+ 102              	.L5:
+ 103 0068 00080140 		.word	1073809408
+ 104 006c 00000000 		.word	hspi1
+ 105              		.cfi_endproc
+ 106              	.LFE66:
+ 108              		.section	.text.NRF24_WriteReg,"ax",%progbits
+ 109              		.align	1
+ 110              		.global	NRF24_WriteReg
+ 111              		.syntax unified
+ 112              		.thumb
+ 113              		.thumb_func
+ 115              	NRF24_WriteReg:
+ 116              	.LVL6:
+ 117              	.LFB67:
+  81:Core/Src/NRF24.c **** 
+  82:Core/Src/NRF24.c **** //------------------------------------------------
+  83:Core/Src/NRF24.c **** 
+  84:Core/Src/NRF24.c **** void NRF24_WriteReg(uint8_t addr, uint8_t dt)
+  85:Core/Src/NRF24.c **** 
+  86:Core/Src/NRF24.c **** {
+ 118              		.loc 1 86 1 view -0
+ 119              		.cfi_startproc
+ 120              		@ args = 0, pretend = 0, frame = 8
+ 121              		@ frame_needed = 0, uses_anonymous_args = 0
+ 122              		.loc 1 86 1 is_stmt 0 view .LVU17
+ 123 0000 30B5     		push	{r4, r5, lr}
+ 124              	.LCFI4:
+ 125              		.cfi_def_cfa_offset 12
+ 126              		.cfi_offset 4, -12
+ 127              		.cfi_offset 5, -8
+ 128              		.cfi_offset 14, -4
+ 129 0002 83B0     		sub	sp, sp, #12
+ 130              	.LCFI5:
+ 131              		.cfi_def_cfa_offset 24
+ 132 0004 8DF80700 		strb	r0, [sp, #7]
+ 133 0008 8DF80610 		strb	r1, [sp, #6]
+  87:Core/Src/NRF24.c **** 
+  88:Core/Src/NRF24.c ****   addr |= W_REGISTER;//включим бит записи в адрес
+ 134              		.loc 1 88 3 is_stmt 1 view .LVU18
+ 135              		.loc 1 88 8 is_stmt 0 view .LVU19
+ 136 000c C3B2     		uxtb	r3, r0
+ 137 000e 43F02003 		orr	r3, r3, #32
+ 138 0012 8DF80730 		strb	r3, [sp, #7]
+  89:Core/Src/NRF24.c **** 
+  90:Core/Src/NRF24.c ****   CS_ON;
+ARM GAS  /tmp/ccq8oCVq.s 			page 5
+
+
+ 139              		.loc 1 90 3 is_stmt 1 view .LVU20
+ 140 0016 0F4C     		ldr	r4, .L9
+ 141 0018 0022     		movs	r2, #0
+ 142 001a 1021     		movs	r1, #16
+ 143              	.LVL7:
+ 144              		.loc 1 90 3 is_stmt 0 view .LVU21
+ 145 001c 2046     		mov	r0, r4
+ 146              	.LVL8:
+ 147              		.loc 1 90 3 view .LVU22
+ 148 001e FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 149              	.LVL9:
+  91:Core/Src/NRF24.c **** 
+  92:Core/Src/NRF24.c ****   HAL_SPI_Transmit(&hspi1,&addr,1,1000);//отправим адрес в шину
+ 150              		.loc 1 92 3 is_stmt 1 view .LVU23
+ 151 0022 0D4D     		ldr	r5, .L9+4
+ 152 0024 4FF47A73 		mov	r3, #1000
+ 153 0028 0122     		movs	r2, #1
+ 154 002a 0DF10701 		add	r1, sp, #7
+ 155 002e 2846     		mov	r0, r5
+ 156 0030 FFF7FEFF 		bl	HAL_SPI_Transmit
+ 157              	.LVL10:
+  93:Core/Src/NRF24.c **** 
+  94:Core/Src/NRF24.c ****   HAL_SPI_Transmit(&hspi1,&dt,1,1000);//отправим данные в шину
+ 158              		.loc 1 94 3 view .LVU24
+ 159 0034 4FF47A73 		mov	r3, #1000
+ 160 0038 0122     		movs	r2, #1
+ 161 003a 0DF10601 		add	r1, sp, #6
+ 162 003e 2846     		mov	r0, r5
+ 163 0040 FFF7FEFF 		bl	HAL_SPI_Transmit
+ 164              	.LVL11:
+  95:Core/Src/NRF24.c **** 
+  96:Core/Src/NRF24.c ****   CS_OFF;
+ 165              		.loc 1 96 3 view .LVU25
+ 166 0044 0122     		movs	r2, #1
+ 167 0046 1021     		movs	r1, #16
+ 168 0048 2046     		mov	r0, r4
+ 169 004a FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 170              	.LVL12:
+  97:Core/Src/NRF24.c **** 
+  98:Core/Src/NRF24.c **** }
+ 171              		.loc 1 98 1 is_stmt 0 view .LVU26
+ 172 004e 03B0     		add	sp, sp, #12
+ 173              	.LCFI6:
+ 174              		.cfi_def_cfa_offset 12
+ 175              		@ sp needed
+ 176 0050 30BD     		pop	{r4, r5, pc}
+ 177              	.L10:
+ 178 0052 00BF     		.align	2
+ 179              	.L9:
+ 180 0054 00080140 		.word	1073809408
+ 181 0058 00000000 		.word	hspi1
+ 182              		.cfi_endproc
+ 183              	.LFE67:
+ 185              		.section	.text.NRF24_ToggleFeatures,"ax",%progbits
+ 186              		.align	1
+ 187              		.global	NRF24_ToggleFeatures
+ 188              		.syntax unified
+ARM GAS  /tmp/ccq8oCVq.s 			page 6
+
+
+ 189              		.thumb
+ 190              		.thumb_func
+ 192              	NRF24_ToggleFeatures:
+ 193              	.LFB68:
+  99:Core/Src/NRF24.c **** 
+ 100:Core/Src/NRF24.c **** //------------------------------------------------
+ 101:Core/Src/NRF24.c **** 
+ 102:Core/Src/NRF24.c **** void NRF24_ToggleFeatures(void)
+ 103:Core/Src/NRF24.c **** 
+ 104:Core/Src/NRF24.c **** {
+ 194              		.loc 1 104 1 is_stmt 1 view -0
+ 195              		.cfi_startproc
+ 196              		@ args = 0, pretend = 0, frame = 8
+ 197              		@ frame_needed = 0, uses_anonymous_args = 0
+ 198 0000 00B5     		push	{lr}
+ 199              	.LCFI7:
+ 200              		.cfi_def_cfa_offset 4
+ 201              		.cfi_offset 14, -4
+ 202 0002 83B0     		sub	sp, sp, #12
+ 203              	.LCFI8:
+ 204              		.cfi_def_cfa_offset 16
+ 105:Core/Src/NRF24.c **** 
+ 106:Core/Src/NRF24.c ****   uint8_t dt[1] = {ACTIVATE};
+ 205              		.loc 1 106 3 view .LVU28
+ 206              		.loc 1 106 11 is_stmt 0 view .LVU29
+ 207 0004 5023     		movs	r3, #80
+ 208 0006 8DF80430 		strb	r3, [sp, #4]
+ 107:Core/Src/NRF24.c **** 
+ 108:Core/Src/NRF24.c ****   CS_ON;
+ 209              		.loc 1 108 3 is_stmt 1 view .LVU30
+ 210 000a 0022     		movs	r2, #0
+ 211 000c 1021     		movs	r1, #16
+ 212 000e 1348     		ldr	r0, .L14
+ 213 0010 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 214              	.LVL13:
+ 109:Core/Src/NRF24.c **** 
+ 110:Core/Src/NRF24.c ****   HAL_SPI_Transmit(&hspi1,dt,1,1000);
+ 215              		.loc 1 110 3 view .LVU31
+ 216 0014 4FF47A73 		mov	r3, #1000
+ 217 0018 0122     		movs	r2, #1
+ 218 001a 01A9     		add	r1, sp, #4
+ 219 001c 1048     		ldr	r0, .L14+4
+ 220 001e FFF7FEFF 		bl	HAL_SPI_Transmit
+ 221              	.LVL14:
+ 111:Core/Src/NRF24.c **** 
+ 112:Core/Src/NRF24.c ****   DelayMicro(1);
+ 222              		.loc 1 112 3 view .LVU32
+ 223              	.LBB22:
+ 224              	.LBI22:
+  42:Core/Src/NRF24.c **** 
+ 225              		.loc 1 42 22 view .LVU33
+ 226              	.LBB23:
+  46:Core/Src/NRF24.c **** 
+ 227              		.loc 1 46 3 view .LVU34
+  46:Core/Src/NRF24.c **** 
+ 228              		.loc 1 46 41 is_stmt 0 view .LVU35
+ 229 0022 104B     		ldr	r3, .L14+8
+ARM GAS  /tmp/ccq8oCVq.s 			page 7
+
+
+ 230 0024 1B68     		ldr	r3, [r3]
+ 231 0026 104A     		ldr	r2, .L14+12
+ 232 0028 A2FB0323 		umull	r2, r3, r2, r3
+  46:Core/Src/NRF24.c **** 
+ 233              		.loc 1 46 10 view .LVU36
+ 234 002c DB0C     		lsrs	r3, r3, #19
+  50:Core/Src/NRF24.c **** 
+ 235              		.loc 1 50 3 is_stmt 1 view .LVU37
+ 236              	.L12:
+  50:Core/Src/NRF24.c **** 
+ 237              		.loc 1 50 20 view .LVU38
+  50:Core/Src/NRF24.c **** 
+ 238              		.loc 1 50 9 view .LVU39
+  50:Core/Src/NRF24.c **** 
+ 239              		.loc 1 50 16 is_stmt 0 view .LVU40
+ 240 002e 1A46     		mov	r2, r3
+ 241 0030 013B     		subs	r3, r3, #1
+  50:Core/Src/NRF24.c **** 
+ 242              		.loc 1 50 9 view .LVU41
+ 243 0032 002A     		cmp	r2, #0
+ 244 0034 FBD1     		bne	.L12
+ 245              	.LVL15:
+  50:Core/Src/NRF24.c **** 
+ 246              		.loc 1 50 9 view .LVU42
+ 247              	.LBE23:
+ 248              	.LBE22:
+ 113:Core/Src/NRF24.c **** 
+ 114:Core/Src/NRF24.c ****   dt[0] = 0x73;
+ 249              		.loc 1 114 3 is_stmt 1 view .LVU43
+ 250              		.loc 1 114 9 is_stmt 0 view .LVU44
+ 251 0036 7323     		movs	r3, #115
+ 252 0038 8DF80430 		strb	r3, [sp, #4]
+ 115:Core/Src/NRF24.c **** 
+ 116:Core/Src/NRF24.c ****   HAL_SPI_Transmit(&hspi1,dt,1,1000);
+ 253              		.loc 1 116 3 is_stmt 1 view .LVU45
+ 254 003c 4FF47A73 		mov	r3, #1000
+ 255 0040 0122     		movs	r2, #1
+ 256 0042 01A9     		add	r1, sp, #4
+ 257 0044 0648     		ldr	r0, .L14+4
+ 258 0046 FFF7FEFF 		bl	HAL_SPI_Transmit
+ 259              	.LVL16:
+ 117:Core/Src/NRF24.c **** 
+ 118:Core/Src/NRF24.c ****   CS_OFF;
+ 260              		.loc 1 118 3 view .LVU46
+ 261 004a 0122     		movs	r2, #1
+ 262 004c 1021     		movs	r1, #16
+ 263 004e 0348     		ldr	r0, .L14
+ 264 0050 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 265              	.LVL17:
+ 119:Core/Src/NRF24.c **** 
+ 120:Core/Src/NRF24.c **** }
+ 266              		.loc 1 120 1 is_stmt 0 view .LVU47
+ 267 0054 03B0     		add	sp, sp, #12
+ 268              	.LCFI9:
+ 269              		.cfi_def_cfa_offset 4
+ 270              		@ sp needed
+ 271 0056 5DF804FB 		ldr	pc, [sp], #4
+ARM GAS  /tmp/ccq8oCVq.s 			page 8
+
+
+ 272              	.L15:
+ 273 005a 00BF     		.align	2
+ 274              	.L14:
+ 275 005c 00080140 		.word	1073809408
+ 276 0060 00000000 		.word	hspi1
+ 277 0064 00000000 		.word	SystemCoreClock
+ 278 0068 819F5E16 		.word	375299969
+ 279              		.cfi_endproc
+ 280              	.LFE68:
+ 282              		.section	.text.NRF24_Read_Buf,"ax",%progbits
+ 283              		.align	1
+ 284              		.global	NRF24_Read_Buf
+ 285              		.syntax unified
+ 286              		.thumb
+ 287              		.thumb_func
+ 289              	NRF24_Read_Buf:
+ 290              	.LVL18:
+ 291              	.LFB69:
+ 121:Core/Src/NRF24.c **** 
+ 122:Core/Src/NRF24.c **** //-----------------------------------------------
+ 123:Core/Src/NRF24.c **** 
+ 124:Core/Src/NRF24.c **** void NRF24_Read_Buf(uint8_t addr,uint8_t *pBuf,uint8_t bytes)
+ 125:Core/Src/NRF24.c **** 
+ 126:Core/Src/NRF24.c **** {
+ 292              		.loc 1 126 1 is_stmt 1 view -0
+ 293              		.cfi_startproc
+ 294              		@ args = 0, pretend = 0, frame = 8
+ 295              		@ frame_needed = 0, uses_anonymous_args = 0
+ 296              		.loc 1 126 1 is_stmt 0 view .LVU49
+ 297 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 298              	.LCFI10:
+ 299              		.cfi_def_cfa_offset 20
+ 300              		.cfi_offset 4, -20
+ 301              		.cfi_offset 5, -16
+ 302              		.cfi_offset 6, -12
+ 303              		.cfi_offset 7, -8
+ 304              		.cfi_offset 14, -4
+ 305 0002 83B0     		sub	sp, sp, #12
+ 306              	.LCFI11:
+ 307              		.cfi_def_cfa_offset 32
+ 308 0004 0C46     		mov	r4, r1
+ 309 0006 1546     		mov	r5, r2
+ 310 0008 8DF80700 		strb	r0, [sp, #7]
+ 127:Core/Src/NRF24.c **** 
+ 128:Core/Src/NRF24.c ****   CS_ON;
+ 311              		.loc 1 128 3 is_stmt 1 view .LVU50
+ 312 000c 0E4E     		ldr	r6, .L18
+ 313 000e 0022     		movs	r2, #0
+ 314              	.LVL19:
+ 315              		.loc 1 128 3 is_stmt 0 view .LVU51
+ 316 0010 1021     		movs	r1, #16
+ 317              	.LVL20:
+ 318              		.loc 1 128 3 view .LVU52
+ 319 0012 3046     		mov	r0, r6
+ 320              	.LVL21:
+ 321              		.loc 1 128 3 view .LVU53
+ 322 0014 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ARM GAS  /tmp/ccq8oCVq.s 			page 9
+
+
+ 323              	.LVL22:
+ 129:Core/Src/NRF24.c **** 
+ 130:Core/Src/NRF24.c ****   HAL_SPI_Transmit(&hspi1,&addr,1,1000);//отправим адрес в шину
+ 324              		.loc 1 130 3 is_stmt 1 view .LVU54
+ 325 0018 0C4F     		ldr	r7, .L18+4
+ 326 001a 4FF47A73 		mov	r3, #1000
+ 327 001e 0122     		movs	r2, #1
+ 328 0020 0DF10701 		add	r1, sp, #7
+ 329 0024 3846     		mov	r0, r7
+ 330 0026 FFF7FEFF 		bl	HAL_SPI_Transmit
+ 331              	.LVL23:
+ 131:Core/Src/NRF24.c **** 
+ 132:Core/Src/NRF24.c ****   HAL_SPI_Receive(&hspi1,pBuf,bytes,1000);//отправим данные в буфер
+ 332              		.loc 1 132 3 view .LVU55
+ 333 002a 4FF47A73 		mov	r3, #1000
+ 334 002e 2A46     		mov	r2, r5
+ 335 0030 2146     		mov	r1, r4
+ 336 0032 3846     		mov	r0, r7
+ 337 0034 FFF7FEFF 		bl	HAL_SPI_Receive
+ 338              	.LVL24:
+ 133:Core/Src/NRF24.c **** 
+ 134:Core/Src/NRF24.c ****   CS_OFF;
+ 339              		.loc 1 134 3 view .LVU56
+ 340 0038 0122     		movs	r2, #1
+ 341 003a 1021     		movs	r1, #16
+ 342 003c 3046     		mov	r0, r6
+ 343 003e FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 344              	.LVL25:
+ 135:Core/Src/NRF24.c **** 
+ 136:Core/Src/NRF24.c **** }
+ 345              		.loc 1 136 1 is_stmt 0 view .LVU57
+ 346 0042 03B0     		add	sp, sp, #12
+ 347              	.LCFI12:
+ 348              		.cfi_def_cfa_offset 20
+ 349              		@ sp needed
+ 350 0044 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 351              	.LVL26:
+ 352              	.L19:
+ 353              		.loc 1 136 1 view .LVU58
+ 354 0046 00BF     		.align	2
+ 355              	.L18:
+ 356 0048 00080140 		.word	1073809408
+ 357 004c 00000000 		.word	hspi1
+ 358              		.cfi_endproc
+ 359              	.LFE69:
+ 361              		.section	.text.NRF24_Write_Buf,"ax",%progbits
+ 362              		.align	1
+ 363              		.global	NRF24_Write_Buf
+ 364              		.syntax unified
+ 365              		.thumb
+ 366              		.thumb_func
+ 368              	NRF24_Write_Buf:
+ 369              	.LVL27:
+ 370              	.LFB70:
+ 137:Core/Src/NRF24.c **** 
+ 138:Core/Src/NRF24.c **** //------------------------------------------------
+ 139:Core/Src/NRF24.c **** 
+ARM GAS  /tmp/ccq8oCVq.s 			page 10
+
+
+ 140:Core/Src/NRF24.c **** void NRF24_Write_Buf(uint8_t addr,uint8_t *pBuf,uint8_t bytes)
+ 141:Core/Src/NRF24.c **** 
+ 142:Core/Src/NRF24.c **** {
+ 371              		.loc 1 142 1 is_stmt 1 view -0
+ 372              		.cfi_startproc
+ 373              		@ args = 0, pretend = 0, frame = 8
+ 374              		@ frame_needed = 0, uses_anonymous_args = 0
+ 375              		.loc 1 142 1 is_stmt 0 view .LVU60
+ 376 0000 30B5     		push	{r4, r5, lr}
+ 377              	.LCFI13:
+ 378              		.cfi_def_cfa_offset 12
+ 379              		.cfi_offset 4, -12
+ 380              		.cfi_offset 5, -8
+ 381              		.cfi_offset 14, -4
+ 382 0002 83B0     		sub	sp, sp, #12
+ 383              	.LCFI14:
+ 384              		.cfi_def_cfa_offset 24
+ 385 0004 0C46     		mov	r4, r1
+ 386 0006 1546     		mov	r5, r2
+ 387 0008 8DF80700 		strb	r0, [sp, #7]
+ 143:Core/Src/NRF24.c **** 
+ 144:Core/Src/NRF24.c ****   addr |= W_REGISTER;//включим бит записи в адрес
+ 388              		.loc 1 144 3 is_stmt 1 view .LVU61
+ 389              		.loc 1 144 8 is_stmt 0 view .LVU62
+ 390 000c C3B2     		uxtb	r3, r0
+ 391 000e 43F02003 		orr	r3, r3, #32
+ 392 0012 8DF80730 		strb	r3, [sp, #7]
+ 145:Core/Src/NRF24.c **** 
+ 146:Core/Src/NRF24.c ****   CS_ON;
+ 393              		.loc 1 146 3 is_stmt 1 view .LVU63
+ 394 0016 0022     		movs	r2, #0
+ 395              	.LVL28:
+ 396              		.loc 1 146 3 is_stmt 0 view .LVU64
+ 397 0018 1021     		movs	r1, #16
+ 398              	.LVL29:
+ 399              		.loc 1 146 3 view .LVU65
+ 400 001a 1148     		ldr	r0, .L23
+ 401              	.LVL30:
+ 402              		.loc 1 146 3 view .LVU66
+ 403 001c FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 404              	.LVL31:
+ 147:Core/Src/NRF24.c **** 
+ 148:Core/Src/NRF24.c ****   HAL_SPI_Transmit(&hspi1,&addr,1,1000);//отправим адрес в шину
+ 405              		.loc 1 148 3 is_stmt 1 view .LVU67
+ 406 0020 4FF47A73 		mov	r3, #1000
+ 407 0024 0122     		movs	r2, #1
+ 408 0026 0DF10701 		add	r1, sp, #7
+ 409 002a 0E48     		ldr	r0, .L23+4
+ 410 002c FFF7FEFF 		bl	HAL_SPI_Transmit
+ 411              	.LVL32:
+ 149:Core/Src/NRF24.c **** 
+ 150:Core/Src/NRF24.c ****   DelayMicro(1);
+ 412              		.loc 1 150 3 view .LVU68
+ 413              	.LBB24:
+ 414              	.LBI24:
+  42:Core/Src/NRF24.c **** 
+ 415              		.loc 1 42 22 view .LVU69
+ARM GAS  /tmp/ccq8oCVq.s 			page 11
+
+
+ 416              	.LBB25:
+  46:Core/Src/NRF24.c **** 
+ 417              		.loc 1 46 3 view .LVU70
+  46:Core/Src/NRF24.c **** 
+ 418              		.loc 1 46 41 is_stmt 0 view .LVU71
+ 419 0030 0D4B     		ldr	r3, .L23+8
+ 420 0032 1B68     		ldr	r3, [r3]
+ 421 0034 0D4A     		ldr	r2, .L23+12
+ 422 0036 A2FB0323 		umull	r2, r3, r2, r3
+  46:Core/Src/NRF24.c **** 
+ 423              		.loc 1 46 10 view .LVU72
+ 424 003a DB0C     		lsrs	r3, r3, #19
+  50:Core/Src/NRF24.c **** 
+ 425              		.loc 1 50 3 is_stmt 1 view .LVU73
+ 426              	.L21:
+  50:Core/Src/NRF24.c **** 
+ 427              		.loc 1 50 20 view .LVU74
+  50:Core/Src/NRF24.c **** 
+ 428              		.loc 1 50 9 view .LVU75
+  50:Core/Src/NRF24.c **** 
+ 429              		.loc 1 50 16 is_stmt 0 view .LVU76
+ 430 003c 1846     		mov	r0, r3
+ 431 003e 013B     		subs	r3, r3, #1
+  50:Core/Src/NRF24.c **** 
+ 432              		.loc 1 50 9 view .LVU77
+ 433 0040 0028     		cmp	r0, #0
+ 434 0042 FBD1     		bne	.L21
+ 435              	.LVL33:
+  50:Core/Src/NRF24.c **** 
+ 436              		.loc 1 50 9 view .LVU78
+ 437              	.LBE25:
+ 438              	.LBE24:
+ 151:Core/Src/NRF24.c **** 
+ 152:Core/Src/NRF24.c ****   HAL_SPI_Transmit(&hspi1,pBuf,bytes,1000);//отправим данные в буфер
+ 439              		.loc 1 152 3 is_stmt 1 view .LVU79
+ 440 0044 4FF47A73 		mov	r3, #1000
+ 441 0048 2A46     		mov	r2, r5
+ 442 004a 2146     		mov	r1, r4
+ 443 004c 0548     		ldr	r0, .L23+4
+ 444 004e FFF7FEFF 		bl	HAL_SPI_Transmit
+ 445              	.LVL34:
+ 153:Core/Src/NRF24.c **** 
+ 154:Core/Src/NRF24.c ****   CS_OFF;
+ 446              		.loc 1 154 3 view .LVU80
+ 447 0052 0122     		movs	r2, #1
+ 448 0054 1021     		movs	r1, #16
+ 449 0056 0248     		ldr	r0, .L23
+ 450 0058 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 451              	.LVL35:
+ 155:Core/Src/NRF24.c **** 
+ 156:Core/Src/NRF24.c **** }
+ 452              		.loc 1 156 1 is_stmt 0 view .LVU81
+ 453 005c 03B0     		add	sp, sp, #12
+ 454              	.LCFI15:
+ 455              		.cfi_def_cfa_offset 12
+ 456              		@ sp needed
+ 457 005e 30BD     		pop	{r4, r5, pc}
+ARM GAS  /tmp/ccq8oCVq.s 			page 12
+
+
+ 458              	.LVL36:
+ 459              	.L24:
+ 460              		.loc 1 156 1 view .LVU82
+ 461              		.align	2
+ 462              	.L23:
+ 463 0060 00080140 		.word	1073809408
+ 464 0064 00000000 		.word	hspi1
+ 465 0068 00000000 		.word	SystemCoreClock
+ 466 006c 819F5E16 		.word	375299969
+ 467              		.cfi_endproc
+ 468              	.LFE70:
+ 470              		.section	.text.NRF24_FlushRX,"ax",%progbits
+ 471              		.align	1
+ 472              		.global	NRF24_FlushRX
+ 473              		.syntax unified
+ 474              		.thumb
+ 475              		.thumb_func
+ 477              	NRF24_FlushRX:
+ 478              	.LFB71:
+ 157:Core/Src/NRF24.c **** 
+ 158:Core/Src/NRF24.c **** //------------------------------------------------
+ 159:Core/Src/NRF24.c **** 
+ 160:Core/Src/NRF24.c **** void NRF24_FlushRX(void)
+ 161:Core/Src/NRF24.c **** 
+ 162:Core/Src/NRF24.c **** {
+ 479              		.loc 1 162 1 is_stmt 1 view -0
+ 480              		.cfi_startproc
+ 481              		@ args = 0, pretend = 0, frame = 8
+ 482              		@ frame_needed = 0, uses_anonymous_args = 0
+ 483 0000 00B5     		push	{lr}
+ 484              	.LCFI16:
+ 485              		.cfi_def_cfa_offset 4
+ 486              		.cfi_offset 14, -4
+ 487 0002 83B0     		sub	sp, sp, #12
+ 488              	.LCFI17:
+ 489              		.cfi_def_cfa_offset 16
+ 163:Core/Src/NRF24.c **** 
+ 164:Core/Src/NRF24.c ****   uint8_t dt[1] = {FLUSH_RX};
+ 490              		.loc 1 164 3 view .LVU84
+ 491              		.loc 1 164 11 is_stmt 0 view .LVU85
+ 492 0004 E223     		movs	r3, #226
+ 493 0006 8DF80430 		strb	r3, [sp, #4]
+ 165:Core/Src/NRF24.c **** 
+ 166:Core/Src/NRF24.c ****   CS_ON;
+ 494              		.loc 1 166 3 is_stmt 1 view .LVU86
+ 495 000a 0022     		movs	r2, #0
+ 496 000c 1021     		movs	r1, #16
+ 497 000e 0E48     		ldr	r0, .L28
+ 498 0010 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 499              	.LVL37:
+ 167:Core/Src/NRF24.c **** 
+ 168:Core/Src/NRF24.c ****   HAL_SPI_Transmit(&hspi1,dt,1,1000);
+ 500              		.loc 1 168 3 view .LVU87
+ 501 0014 4FF47A73 		mov	r3, #1000
+ 502 0018 0122     		movs	r2, #1
+ 503 001a 01A9     		add	r1, sp, #4
+ 504 001c 0B48     		ldr	r0, .L28+4
+ARM GAS  /tmp/ccq8oCVq.s 			page 13
+
+
+ 505 001e FFF7FEFF 		bl	HAL_SPI_Transmit
+ 506              	.LVL38:
+ 169:Core/Src/NRF24.c **** 
+ 170:Core/Src/NRF24.c ****   DelayMicro(1);
+ 507              		.loc 1 170 3 view .LVU88
+ 508              	.LBB26:
+ 509              	.LBI26:
+  42:Core/Src/NRF24.c **** 
+ 510              		.loc 1 42 22 view .LVU89
+ 511              	.LBB27:
+  46:Core/Src/NRF24.c **** 
+ 512              		.loc 1 46 3 view .LVU90
+  46:Core/Src/NRF24.c **** 
+ 513              		.loc 1 46 41 is_stmt 0 view .LVU91
+ 514 0022 0B4B     		ldr	r3, .L28+8
+ 515 0024 1B68     		ldr	r3, [r3]
+ 516 0026 0B4A     		ldr	r2, .L28+12
+ 517 0028 A2FB0323 		umull	r2, r3, r2, r3
+  46:Core/Src/NRF24.c **** 
+ 518              		.loc 1 46 10 view .LVU92
+ 519 002c DB0C     		lsrs	r3, r3, #19
+  50:Core/Src/NRF24.c **** 
+ 520              		.loc 1 50 3 is_stmt 1 view .LVU93
+ 521              	.L26:
+  50:Core/Src/NRF24.c **** 
+ 522              		.loc 1 50 20 view .LVU94
+  50:Core/Src/NRF24.c **** 
+ 523              		.loc 1 50 9 view .LVU95
+  50:Core/Src/NRF24.c **** 
+ 524              		.loc 1 50 16 is_stmt 0 view .LVU96
+ 525 002e 1A46     		mov	r2, r3
+ 526 0030 013B     		subs	r3, r3, #1
+  50:Core/Src/NRF24.c **** 
+ 527              		.loc 1 50 9 view .LVU97
+ 528 0032 002A     		cmp	r2, #0
+ 529 0034 FBD1     		bne	.L26
+ 530              	.LVL39:
+  50:Core/Src/NRF24.c **** 
+ 531              		.loc 1 50 9 view .LVU98
+ 532              	.LBE27:
+ 533              	.LBE26:
+ 171:Core/Src/NRF24.c **** 
+ 172:Core/Src/NRF24.c ****   CS_OFF;
+ 534              		.loc 1 172 3 is_stmt 1 view .LVU99
+ 535 0036 0122     		movs	r2, #1
+ 536 0038 1021     		movs	r1, #16
+ 537 003a 0348     		ldr	r0, .L28
+ 538 003c FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 539              	.LVL40:
+ 173:Core/Src/NRF24.c **** 
+ 174:Core/Src/NRF24.c **** }
+ 540              		.loc 1 174 1 is_stmt 0 view .LVU100
+ 541 0040 03B0     		add	sp, sp, #12
+ 542              	.LCFI18:
+ 543              		.cfi_def_cfa_offset 4
+ 544              		@ sp needed
+ 545 0042 5DF804FB 		ldr	pc, [sp], #4
+ARM GAS  /tmp/ccq8oCVq.s 			page 14
+
+
+ 546              	.L29:
+ 547 0046 00BF     		.align	2
+ 548              	.L28:
+ 549 0048 00080140 		.word	1073809408
+ 550 004c 00000000 		.word	hspi1
+ 551 0050 00000000 		.word	SystemCoreClock
+ 552 0054 819F5E16 		.word	375299969
+ 553              		.cfi_endproc
+ 554              	.LFE71:
+ 556              		.section	.text.NRF24_FlushTX,"ax",%progbits
+ 557              		.align	1
+ 558              		.global	NRF24_FlushTX
+ 559              		.syntax unified
+ 560              		.thumb
+ 561              		.thumb_func
+ 563              	NRF24_FlushTX:
+ 564              	.LFB72:
+ 175:Core/Src/NRF24.c **** 
+ 176:Core/Src/NRF24.c **** //------------------------------------------------
+ 177:Core/Src/NRF24.c **** 
+ 178:Core/Src/NRF24.c **** void NRF24_FlushTX(void)
+ 179:Core/Src/NRF24.c **** 
+ 180:Core/Src/NRF24.c **** {
+ 565              		.loc 1 180 1 is_stmt 1 view -0
+ 566              		.cfi_startproc
+ 567              		@ args = 0, pretend = 0, frame = 8
+ 568              		@ frame_needed = 0, uses_anonymous_args = 0
+ 569 0000 00B5     		push	{lr}
+ 570              	.LCFI19:
+ 571              		.cfi_def_cfa_offset 4
+ 572              		.cfi_offset 14, -4
+ 573 0002 83B0     		sub	sp, sp, #12
+ 574              	.LCFI20:
+ 575              		.cfi_def_cfa_offset 16
+ 181:Core/Src/NRF24.c **** 
+ 182:Core/Src/NRF24.c ****   uint8_t dt[1] = {FLUSH_TX};
+ 576              		.loc 1 182 3 view .LVU102
+ 577              		.loc 1 182 11 is_stmt 0 view .LVU103
+ 578 0004 E123     		movs	r3, #225
+ 579 0006 8DF80430 		strb	r3, [sp, #4]
+ 183:Core/Src/NRF24.c **** 
+ 184:Core/Src/NRF24.c ****   CS_ON;
+ 580              		.loc 1 184 3 is_stmt 1 view .LVU104
+ 581 000a 0022     		movs	r2, #0
+ 582 000c 1021     		movs	r1, #16
+ 583 000e 0E48     		ldr	r0, .L33
+ 584 0010 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 585              	.LVL41:
+ 185:Core/Src/NRF24.c **** 
+ 186:Core/Src/NRF24.c ****   HAL_SPI_Transmit(&hspi1,dt,1,1000);
+ 586              		.loc 1 186 3 view .LVU105
+ 587 0014 4FF47A73 		mov	r3, #1000
+ 588 0018 0122     		movs	r2, #1
+ 589 001a 01A9     		add	r1, sp, #4
+ 590 001c 0B48     		ldr	r0, .L33+4
+ 591 001e FFF7FEFF 		bl	HAL_SPI_Transmit
+ 592              	.LVL42:
+ARM GAS  /tmp/ccq8oCVq.s 			page 15
+
+
+ 187:Core/Src/NRF24.c **** 
+ 188:Core/Src/NRF24.c ****   DelayMicro(1);
+ 593              		.loc 1 188 3 view .LVU106
+ 594              	.LBB28:
+ 595              	.LBI28:
+  42:Core/Src/NRF24.c **** 
+ 596              		.loc 1 42 22 view .LVU107
+ 597              	.LBB29:
+  46:Core/Src/NRF24.c **** 
+ 598              		.loc 1 46 3 view .LVU108
+  46:Core/Src/NRF24.c **** 
+ 599              		.loc 1 46 41 is_stmt 0 view .LVU109
+ 600 0022 0B4B     		ldr	r3, .L33+8
+ 601 0024 1B68     		ldr	r3, [r3]
+ 602 0026 0B4A     		ldr	r2, .L33+12
+ 603 0028 A2FB0323 		umull	r2, r3, r2, r3
+  46:Core/Src/NRF24.c **** 
+ 604              		.loc 1 46 10 view .LVU110
+ 605 002c DB0C     		lsrs	r3, r3, #19
+  50:Core/Src/NRF24.c **** 
+ 606              		.loc 1 50 3 is_stmt 1 view .LVU111
+ 607              	.L31:
+  50:Core/Src/NRF24.c **** 
+ 608              		.loc 1 50 20 view .LVU112
+  50:Core/Src/NRF24.c **** 
+ 609              		.loc 1 50 9 view .LVU113
+  50:Core/Src/NRF24.c **** 
+ 610              		.loc 1 50 16 is_stmt 0 view .LVU114
+ 611 002e 1A46     		mov	r2, r3
+ 612 0030 013B     		subs	r3, r3, #1
+  50:Core/Src/NRF24.c **** 
+ 613              		.loc 1 50 9 view .LVU115
+ 614 0032 002A     		cmp	r2, #0
+ 615 0034 FBD1     		bne	.L31
+ 616              	.LVL43:
+  50:Core/Src/NRF24.c **** 
+ 617              		.loc 1 50 9 view .LVU116
+ 618              	.LBE29:
+ 619              	.LBE28:
+ 189:Core/Src/NRF24.c **** 
+ 190:Core/Src/NRF24.c ****   CS_OFF;
+ 620              		.loc 1 190 3 is_stmt 1 view .LVU117
+ 621 0036 0122     		movs	r2, #1
+ 622 0038 1021     		movs	r1, #16
+ 623 003a 0348     		ldr	r0, .L33
+ 624 003c FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 625              	.LVL44:
+ 191:Core/Src/NRF24.c **** 
+ 192:Core/Src/NRF24.c **** }
+ 626              		.loc 1 192 1 is_stmt 0 view .LVU118
+ 627 0040 03B0     		add	sp, sp, #12
+ 628              	.LCFI21:
+ 629              		.cfi_def_cfa_offset 4
+ 630              		@ sp needed
+ 631 0042 5DF804FB 		ldr	pc, [sp], #4
+ 632              	.L34:
+ 633 0046 00BF     		.align	2
+ARM GAS  /tmp/ccq8oCVq.s 			page 16
+
+
+ 634              	.L33:
+ 635 0048 00080140 		.word	1073809408
+ 636 004c 00000000 		.word	hspi1
+ 637 0050 00000000 		.word	SystemCoreClock
+ 638 0054 819F5E16 		.word	375299969
+ 639              		.cfi_endproc
+ 640              	.LFE72:
+ 642              		.section	.text.NRF24L01_RX_Mode,"ax",%progbits
+ 643              		.align	1
+ 644              		.global	NRF24L01_RX_Mode
+ 645              		.syntax unified
+ 646              		.thumb
+ 647              		.thumb_func
+ 649              	NRF24L01_RX_Mode:
+ 650              	.LFB73:
+ 193:Core/Src/NRF24.c **** 
+ 194:Core/Src/NRF24.c **** //------------------------------------------------
+ 195:Core/Src/NRF24.c **** 
+ 196:Core/Src/NRF24.c **** void NRF24L01_RX_Mode(void)
+ 197:Core/Src/NRF24.c **** 
+ 198:Core/Src/NRF24.c **** {
+ 651              		.loc 1 198 1 is_stmt 1 view -0
+ 652              		.cfi_startproc
+ 653              		@ args = 0, pretend = 0, frame = 0
+ 654              		@ frame_needed = 0, uses_anonymous_args = 0
+ 655 0000 08B5     		push	{r3, lr}
+ 656              	.LCFI22:
+ 657              		.cfi_def_cfa_offset 8
+ 658              		.cfi_offset 3, -8
+ 659              		.cfi_offset 14, -4
+ 199:Core/Src/NRF24.c **** 
+ 200:Core/Src/NRF24.c ****   uint8_t regval=0x00;
+ 660              		.loc 1 200 3 view .LVU120
+ 661              	.LVL45:
+ 201:Core/Src/NRF24.c **** 
+ 202:Core/Src/NRF24.c ****   regval = NRF24_ReadReg(CONFIG);
+ 662              		.loc 1 202 3 view .LVU121
+ 663              		.loc 1 202 12 is_stmt 0 view .LVU122
+ 664 0002 0020     		movs	r0, #0
+ 665 0004 FFF7FEFF 		bl	NRF24_ReadReg
+ 666              	.LVL46:
+ 203:Core/Src/NRF24.c **** 
+ 204:Core/Src/NRF24.c ****   //разбудим модуль и переведём его в режим приёмника, в
+ 205:Core/Src/NRF24.c **** 
+ 206:Core/Src/NRF24.c ****   regval |= (1<<PWR_UP)|(1<<PRIM_RX);
+ 667              		.loc 1 206 3 is_stmt 1 view .LVU123
+ 668              		.loc 1 206 10 is_stmt 0 view .LVU124
+ 669 0008 40F00301 		orr	r1, r0, #3
+ 670              	.LVL47:
+ 207:Core/Src/NRF24.c **** 
+ 208:Core/Src/NRF24.c ****   NRF24_WriteReg(CONFIG,regval);
+ 671              		.loc 1 208 3 is_stmt 1 view .LVU125
+ 672 000c C9B2     		uxtb	r1, r1
+ 673              		.loc 1 208 3 is_stmt 0 view .LVU126
+ 674 000e 0020     		movs	r0, #0
+ 675 0010 FFF7FEFF 		bl	NRF24_WriteReg
+ 676              	.LVL48:
+ARM GAS  /tmp/ccq8oCVq.s 			page 17
+
+
+ 209:Core/Src/NRF24.c **** 
+ 210:Core/Src/NRF24.c ****   CE_SET;
+ 677              		.loc 1 210 3 is_stmt 1 view .LVU127
+ 678 0014 0122     		movs	r2, #1
+ 679 0016 0821     		movs	r1, #8
+ 680 0018 0A48     		ldr	r0, .L38
+ 681 001a FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 682              	.LVL49:
+ 211:Core/Src/NRF24.c **** 
+ 212:Core/Src/NRF24.c ****   DelayMicro(150); //Задержка минимум 130 мкс
+ 683              		.loc 1 212 3 view .LVU128
+ 684 001e 9623     		movs	r3, #150
+ 685              	.LVL50:
+ 686              	.LBB30:
+ 687              	.LBI30:
+  42:Core/Src/NRF24.c **** 
+ 688              		.loc 1 42 22 view .LVU129
+ 689              	.LBB31:
+  46:Core/Src/NRF24.c **** 
+ 690              		.loc 1 46 3 view .LVU130
+  46:Core/Src/NRF24.c **** 
+ 691              		.loc 1 46 41 is_stmt 0 view .LVU131
+ 692 0020 094A     		ldr	r2, .L38+4
+ 693 0022 1268     		ldr	r2, [r2]
+ 694 0024 0949     		ldr	r1, .L38+8
+ 695 0026 A1FB0212 		umull	r1, r2, r1, r2
+ 696 002a D20C     		lsrs	r2, r2, #19
+  46:Core/Src/NRF24.c **** 
+ 697              		.loc 1 46 10 view .LVU132
+ 698 002c 02FB03F3 		mul	r3, r2, r3
+  50:Core/Src/NRF24.c **** 
+ 699              		.loc 1 50 3 is_stmt 1 view .LVU133
+ 700              	.L36:
+  50:Core/Src/NRF24.c **** 
+ 701              		.loc 1 50 20 view .LVU134
+  50:Core/Src/NRF24.c **** 
+ 702              		.loc 1 50 9 view .LVU135
+  50:Core/Src/NRF24.c **** 
+ 703              		.loc 1 50 16 is_stmt 0 view .LVU136
+ 704 0030 1A46     		mov	r2, r3
+ 705 0032 013B     		subs	r3, r3, #1
+  50:Core/Src/NRF24.c **** 
+ 706              		.loc 1 50 9 view .LVU137
+ 707 0034 002A     		cmp	r2, #0
+ 708 0036 FBD1     		bne	.L36
+ 709              	.LVL51:
+  50:Core/Src/NRF24.c **** 
+ 710              		.loc 1 50 9 view .LVU138
+ 711              	.LBE31:
+ 712              	.LBE30:
+ 213:Core/Src/NRF24.c **** 
+ 214:Core/Src/NRF24.c ****   // Flush buffers
+ 215:Core/Src/NRF24.c **** 
+ 216:Core/Src/NRF24.c ****   NRF24_FlushRX();
+ 713              		.loc 1 216 3 is_stmt 1 view .LVU139
+ 714 0038 FFF7FEFF 		bl	NRF24_FlushRX
+ 715              	.LVL52:
+ARM GAS  /tmp/ccq8oCVq.s 			page 18
+
+
+ 217:Core/Src/NRF24.c **** 
+ 218:Core/Src/NRF24.c ****   NRF24_FlushTX();
+ 716              		.loc 1 218 3 view .LVU140
+ 717 003c FFF7FEFF 		bl	NRF24_FlushTX
+ 718              	.LVL53:
+ 219:Core/Src/NRF24.c **** 
+ 220:Core/Src/NRF24.c **** }
+ 719              		.loc 1 220 1 is_stmt 0 view .LVU141
+ 720 0040 08BD     		pop	{r3, pc}
+ 721              	.L39:
+ 722 0042 00BF     		.align	2
+ 723              	.L38:
+ 724 0044 00080140 		.word	1073809408
+ 725 0048 00000000 		.word	SystemCoreClock
+ 726 004c 819F5E16 		.word	375299969
+ 727              		.cfi_endproc
+ 728              	.LFE73:
+ 730              		.section	.text.NRF24L01_TX_Mode,"ax",%progbits
+ 731              		.align	1
+ 732              		.global	NRF24L01_TX_Mode
+ 733              		.syntax unified
+ 734              		.thumb
+ 735              		.thumb_func
+ 737              	NRF24L01_TX_Mode:
+ 738              	.LVL54:
+ 739              	.LFB74:
+ 221:Core/Src/NRF24.c **** //------------------------------------------------
+ 222:Core/Src/NRF24.c **** 
+ 223:Core/Src/NRF24.c **** void NRF24L01_TX_Mode(uint8_t *pBuf)
+ 224:Core/Src/NRF24.c **** 
+ 225:Core/Src/NRF24.c **** {
+ 740              		.loc 1 225 1 is_stmt 1 view -0
+ 741              		.cfi_startproc
+ 742              		@ args = 0, pretend = 0, frame = 0
+ 743              		@ frame_needed = 0, uses_anonymous_args = 0
+ 744              		.loc 1 225 1 is_stmt 0 view .LVU143
+ 745 0000 08B5     		push	{r3, lr}
+ 746              	.LCFI23:
+ 747              		.cfi_def_cfa_offset 8
+ 748              		.cfi_offset 3, -8
+ 749              		.cfi_offset 14, -4
+ 226:Core/Src/NRF24.c **** 
+ 227:Core/Src/NRF24.c ****   NRF24_Write_Buf(TX_ADDR, TX_ADDRESS, TX_ADR_WIDTH);
+ 750              		.loc 1 227 3 is_stmt 1 view .LVU144
+ 751 0002 0322     		movs	r2, #3
+ 752 0004 0649     		ldr	r1, .L42
+ 753 0006 1020     		movs	r0, #16
+ 754              	.LVL55:
+ 755              		.loc 1 227 3 is_stmt 0 view .LVU145
+ 756 0008 FFF7FEFF 		bl	NRF24_Write_Buf
+ 757              	.LVL56:
+ 228:Core/Src/NRF24.c **** 
+ 229:Core/Src/NRF24.c ****   CE_RESET;
+ 758              		.loc 1 229 3 is_stmt 1 view .LVU146
+ 759 000c 0022     		movs	r2, #0
+ 760 000e 0821     		movs	r1, #8
+ 761 0010 0448     		ldr	r0, .L42+4
+ARM GAS  /tmp/ccq8oCVq.s 			page 19
+
+
+ 762 0012 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 763              	.LVL57:
+ 230:Core/Src/NRF24.c **** 
+ 231:Core/Src/NRF24.c ****   // Flush buffers
+ 232:Core/Src/NRF24.c **** 
+ 233:Core/Src/NRF24.c ****   NRF24_FlushRX();
+ 764              		.loc 1 233 3 view .LVU147
+ 765 0016 FFF7FEFF 		bl	NRF24_FlushRX
+ 766              	.LVL58:
+ 234:Core/Src/NRF24.c **** 
+ 235:Core/Src/NRF24.c ****   NRF24_FlushTX();
+ 767              		.loc 1 235 3 view .LVU148
+ 768 001a FFF7FEFF 		bl	NRF24_FlushTX
+ 769              	.LVL59:
+ 236:Core/Src/NRF24.c **** 
+ 237:Core/Src/NRF24.c **** }
+ 770              		.loc 1 237 1 is_stmt 0 view .LVU149
+ 771 001e 08BD     		pop	{r3, pc}
+ 772              	.L43:
+ 773              		.align	2
+ 774              	.L42:
+ 775 0020 00000000 		.word	.LANCHOR0
+ 776 0024 00080140 		.word	1073809408
+ 777              		.cfi_endproc
+ 778              	.LFE74:
+ 780              		.section	.text.NRF24_Transmit,"ax",%progbits
+ 781              		.align	1
+ 782              		.global	NRF24_Transmit
+ 783              		.syntax unified
+ 784              		.thumb
+ 785              		.thumb_func
+ 787              	NRF24_Transmit:
+ 788              	.LVL60:
+ 789              	.LFB75:
+ 238:Core/Src/NRF24.c **** 
+ 239:Core/Src/NRF24.c **** //------------------------------------------------
+ 240:Core/Src/NRF24.c **** 
+ 241:Core/Src/NRF24.c **** void NRF24_Transmit(uint8_t addr,uint8_t *pBuf,uint8_t bytes)
+ 242:Core/Src/NRF24.c **** 
+ 243:Core/Src/NRF24.c **** {
+ 790              		.loc 1 243 1 is_stmt 1 view -0
+ 791              		.cfi_startproc
+ 792              		@ args = 0, pretend = 0, frame = 8
+ 793              		@ frame_needed = 0, uses_anonymous_args = 0
+ 794              		.loc 1 243 1 is_stmt 0 view .LVU151
+ 795 0000 70B5     		push	{r4, r5, r6, lr}
+ 796              	.LCFI24:
+ 797              		.cfi_def_cfa_offset 16
+ 798              		.cfi_offset 4, -16
+ 799              		.cfi_offset 5, -12
+ 800              		.cfi_offset 6, -8
+ 801              		.cfi_offset 14, -4
+ 802 0002 82B0     		sub	sp, sp, #8
+ 803              	.LCFI25:
+ 804              		.cfi_def_cfa_offset 24
+ 805 0004 0C46     		mov	r4, r1
+ 806 0006 1546     		mov	r5, r2
+ARM GAS  /tmp/ccq8oCVq.s 			page 20
+
+
+ 807 0008 8DF80700 		strb	r0, [sp, #7]
+ 244:Core/Src/NRF24.c **** 
+ 245:Core/Src/NRF24.c ****   CE_RESET;
+ 808              		.loc 1 245 3 is_stmt 1 view .LVU152
+ 809 000c 184E     		ldr	r6, .L47
+ 810 000e 0022     		movs	r2, #0
+ 811              	.LVL61:
+ 812              		.loc 1 245 3 is_stmt 0 view .LVU153
+ 813 0010 0821     		movs	r1, #8
+ 814              	.LVL62:
+ 815              		.loc 1 245 3 view .LVU154
+ 816 0012 3046     		mov	r0, r6
+ 817              	.LVL63:
+ 818              		.loc 1 245 3 view .LVU155
+ 819 0014 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 820              	.LVL64:
+ 246:Core/Src/NRF24.c **** 
+ 247:Core/Src/NRF24.c ****   CS_ON;
+ 821              		.loc 1 247 3 is_stmt 1 view .LVU156
+ 822 0018 0022     		movs	r2, #0
+ 823 001a 1021     		movs	r1, #16
+ 824 001c 3046     		mov	r0, r6
+ 825 001e FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 826              	.LVL65:
+ 248:Core/Src/NRF24.c **** 
+ 249:Core/Src/NRF24.c ****   HAL_SPI_Transmit(&hspi1,&addr,1,1000);//отправим адрес в шину
+ 827              		.loc 1 249 3 view .LVU157
+ 828 0022 4FF47A73 		mov	r3, #1000
+ 829 0026 0122     		movs	r2, #1
+ 830 0028 0DF10701 		add	r1, sp, #7
+ 831 002c 1148     		ldr	r0, .L47+4
+ 832 002e FFF7FEFF 		bl	HAL_SPI_Transmit
+ 833              	.LVL66:
+ 250:Core/Src/NRF24.c **** 
+ 251:Core/Src/NRF24.c ****   DelayMicro(1);
+ 834              		.loc 1 251 3 view .LVU158
+ 835              	.LBB32:
+ 836              	.LBI32:
+  42:Core/Src/NRF24.c **** 
+ 837              		.loc 1 42 22 view .LVU159
+ 838              	.LBB33:
+  46:Core/Src/NRF24.c **** 
+ 839              		.loc 1 46 3 view .LVU160
+  46:Core/Src/NRF24.c **** 
+ 840              		.loc 1 46 41 is_stmt 0 view .LVU161
+ 841 0032 114B     		ldr	r3, .L47+8
+ 842 0034 1B68     		ldr	r3, [r3]
+ 843 0036 114A     		ldr	r2, .L47+12
+ 844 0038 A2FB0323 		umull	r2, r3, r2, r3
+  46:Core/Src/NRF24.c **** 
+ 845              		.loc 1 46 10 view .LVU162
+ 846 003c DB0C     		lsrs	r3, r3, #19
+  50:Core/Src/NRF24.c **** 
+ 847              		.loc 1 50 3 is_stmt 1 view .LVU163
+ 848              	.L45:
+  50:Core/Src/NRF24.c **** 
+ 849              		.loc 1 50 20 view .LVU164
+ARM GAS  /tmp/ccq8oCVq.s 			page 21
+
+
+  50:Core/Src/NRF24.c **** 
+ 850              		.loc 1 50 9 view .LVU165
+  50:Core/Src/NRF24.c **** 
+ 851              		.loc 1 50 16 is_stmt 0 view .LVU166
+ 852 003e 1846     		mov	r0, r3
+ 853 0040 013B     		subs	r3, r3, #1
+  50:Core/Src/NRF24.c **** 
+ 854              		.loc 1 50 9 view .LVU167
+ 855 0042 0028     		cmp	r0, #0
+ 856 0044 FBD1     		bne	.L45
+ 857              	.LVL67:
+  50:Core/Src/NRF24.c **** 
+ 858              		.loc 1 50 9 view .LVU168
+ 859              	.LBE33:
+ 860              	.LBE32:
+ 252:Core/Src/NRF24.c **** 
+ 253:Core/Src/NRF24.c ****   HAL_SPI_Transmit(&hspi1,pBuf,bytes,1000);//отправим данные в буфер
+ 861              		.loc 1 253 3 is_stmt 1 view .LVU169
+ 862 0046 4FF47A73 		mov	r3, #1000
+ 863 004a 2A46     		mov	r2, r5
+ 864 004c 2146     		mov	r1, r4
+ 865 004e 0948     		ldr	r0, .L47+4
+ 866 0050 FFF7FEFF 		bl	HAL_SPI_Transmit
+ 867              	.LVL68:
+ 254:Core/Src/NRF24.c **** 
+ 255:Core/Src/NRF24.c ****   CS_OFF;
+ 868              		.loc 1 255 3 view .LVU170
+ 869 0054 064C     		ldr	r4, .L47
+ 870              	.LVL69:
+ 871              		.loc 1 255 3 is_stmt 0 view .LVU171
+ 872 0056 0122     		movs	r2, #1
+ 873 0058 1021     		movs	r1, #16
+ 874 005a 2046     		mov	r0, r4
+ 875 005c FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 876              	.LVL70:
+ 256:Core/Src/NRF24.c **** 
+ 257:Core/Src/NRF24.c ****   CE_SET;
+ 877              		.loc 1 257 3 is_stmt 1 view .LVU172
+ 878 0060 0122     		movs	r2, #1
+ 879 0062 0821     		movs	r1, #8
+ 880 0064 2046     		mov	r0, r4
+ 881 0066 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 882              	.LVL71:
+ 258:Core/Src/NRF24.c **** 
+ 259:Core/Src/NRF24.c **** }
+ 883              		.loc 1 259 1 is_stmt 0 view .LVU173
+ 884 006a 02B0     		add	sp, sp, #8
+ 885              	.LCFI26:
+ 886              		.cfi_def_cfa_offset 16
+ 887              		@ sp needed
+ 888 006c 70BD     		pop	{r4, r5, r6, pc}
+ 889              	.L48:
+ 890 006e 00BF     		.align	2
+ 891              	.L47:
+ 892 0070 00080140 		.word	1073809408
+ 893 0074 00000000 		.word	hspi1
+ 894 0078 00000000 		.word	SystemCoreClock
+ARM GAS  /tmp/ccq8oCVq.s 			page 22
+
+
+ 895 007c 819F5E16 		.word	375299969
+ 896              		.cfi_endproc
+ 897              	.LFE75:
+ 899              		.section	.text.NRF24L01_Send,"ax",%progbits
+ 900              		.align	1
+ 901              		.global	NRF24L01_Send
+ 902              		.syntax unified
+ 903              		.thumb
+ 904              		.thumb_func
+ 906              	NRF24L01_Send:
+ 907              	.LVL72:
+ 908              	.LFB76:
+ 260:Core/Src/NRF24.c **** 
+ 261:Core/Src/NRF24.c **** //------------------------------------------------
+ 262:Core/Src/NRF24.c **** 
+ 263:Core/Src/NRF24.c **** void NRF24L01_Send(uint8_t *pBuf)
+ 264:Core/Src/NRF24.c **** {
+ 909              		.loc 1 264 1 is_stmt 1 view -0
+ 910              		.cfi_startproc
+ 911              		@ args = 0, pretend = 0, frame = 0
+ 912              		@ frame_needed = 0, uses_anonymous_args = 0
+ 913              		.loc 1 264 1 is_stmt 0 view .LVU175
+ 914 0000 10B5     		push	{r4, lr}
+ 915              	.LCFI27:
+ 916              		.cfi_def_cfa_offset 8
+ 917              		.cfi_offset 4, -8
+ 918              		.cfi_offset 14, -4
+ 919 0002 0446     		mov	r4, r0
+ 265:Core/Src/NRF24.c **** 	uint8_t status=0x00, regval=0x00;
+ 920              		.loc 1 265 2 is_stmt 1 view .LVU176
+ 921              	.LVL73:
+ 266:Core/Src/NRF24.c **** 	NRF24L01_TX_Mode(pBuf);
+ 922              		.loc 1 266 2 view .LVU177
+ 923 0004 FFF7FEFF 		bl	NRF24L01_TX_Mode
+ 924              	.LVL74:
+ 267:Core/Src/NRF24.c **** 	regval = NRF24_ReadReg(CONFIG);
+ 925              		.loc 1 267 2 view .LVU178
+ 926              		.loc 1 267 11 is_stmt 0 view .LVU179
+ 927 0008 0020     		movs	r0, #0
+ 928 000a FFF7FEFF 		bl	NRF24_ReadReg
+ 929              	.LVL75:
+ 268:Core/Src/NRF24.c **** 
+ 269:Core/Src/NRF24.c **** 	//если модуль ушел в спящий режим, то разбудим его, вкл�
+ 270:Core/Src/NRF24.c **** 	regval |= (1<<PWR_UP);
+ 930              		.loc 1 270 2 is_stmt 1 view .LVU180
+ 271:Core/Src/NRF24.c **** 	regval &= ~(1<<PRIM_RX);
+ 931              		.loc 1 271 2 view .LVU181
+ 932 000e 00F0FE01 		and	r1, r0, #254
+ 933              	.LVL76:
+ 272:Core/Src/NRF24.c **** 	NRF24_WriteReg(CONFIG,regval);
+ 934              		.loc 1 272 2 view .LVU182
+ 935 0012 41F00201 		orr	r1, r1, #2
+ 936              	.LVL77:
+ 937              		.loc 1 272 2 is_stmt 0 view .LVU183
+ 938 0016 0020     		movs	r0, #0
+ 939              	.LVL78:
+ 940              		.loc 1 272 2 view .LVU184
+ARM GAS  /tmp/ccq8oCVq.s 			page 23
+
+
+ 941 0018 FFF7FEFF 		bl	NRF24_WriteReg
+ 942              	.LVL79:
+ 273:Core/Src/NRF24.c **** 	DelayMicro(150); //Задержка минимум 130 мкс
+ 943              		.loc 1 273 2 is_stmt 1 view .LVU185
+ 944 001c 9623     		movs	r3, #150
+ 945              	.LVL80:
+ 946              	.LBB34:
+ 947              	.LBI34:
+  42:Core/Src/NRF24.c **** 
+ 948              		.loc 1 42 22 view .LVU186
+ 949              	.LBB35:
+  46:Core/Src/NRF24.c **** 
+ 950              		.loc 1 46 3 view .LVU187
+  46:Core/Src/NRF24.c **** 
+ 951              		.loc 1 46 41 is_stmt 0 view .LVU188
+ 952 001e 144A     		ldr	r2, .L53
+ 953 0020 1268     		ldr	r2, [r2]
+ 954 0022 1449     		ldr	r1, .L53+4
+ 955 0024 A1FB0212 		umull	r1, r2, r1, r2
+ 956 0028 D20C     		lsrs	r2, r2, #19
+  46:Core/Src/NRF24.c **** 
+ 957              		.loc 1 46 10 view .LVU189
+ 958 002a 02FB03F3 		mul	r3, r2, r3
+  50:Core/Src/NRF24.c **** 
+ 959              		.loc 1 50 3 is_stmt 1 view .LVU190
+ 960              	.L50:
+  50:Core/Src/NRF24.c **** 
+ 961              		.loc 1 50 20 view .LVU191
+  50:Core/Src/NRF24.c **** 
+ 962              		.loc 1 50 9 view .LVU192
+  50:Core/Src/NRF24.c **** 
+ 963              		.loc 1 50 16 is_stmt 0 view .LVU193
+ 964 002e 1A46     		mov	r2, r3
+ 965 0030 013B     		subs	r3, r3, #1
+  50:Core/Src/NRF24.c **** 
+ 966              		.loc 1 50 9 view .LVU194
+ 967 0032 002A     		cmp	r2, #0
+ 968 0034 FBD1     		bne	.L50
+ 969              	.LVL81:
+  50:Core/Src/NRF24.c **** 
+ 970              		.loc 1 50 9 view .LVU195
+ 971              	.LBE35:
+ 972              	.LBE34:
+ 274:Core/Src/NRF24.c **** 
+ 275:Core/Src/NRF24.c **** 	//Отправим данные в воздух
+ 276:Core/Src/NRF24.c **** 	NRF24_Transmit(WR_TX_PLOAD, pBuf, TX_PLOAD_WIDTH);
+ 973              		.loc 1 276 2 is_stmt 1 view .LVU196
+ 974 0036 0522     		movs	r2, #5
+ 975 0038 2146     		mov	r1, r4
+ 976 003a A020     		movs	r0, #160
+ 977 003c FFF7FEFF 		bl	NRF24_Transmit
+ 978              	.LVL82:
+ 277:Core/Src/NRF24.c **** 	CE_SET;
+ 979              		.loc 1 277 2 view .LVU197
+ 980 0040 0122     		movs	r2, #1
+ 981 0042 0821     		movs	r1, #8
+ 982 0044 0C48     		ldr	r0, .L53+8
+ARM GAS  /tmp/ccq8oCVq.s 			page 24
+
+
+ 983 0046 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 984              	.LVL83:
+ 278:Core/Src/NRF24.c **** 	DelayMicro(15); //minimum 10us high pulse (Page 21)
+ 985              		.loc 1 278 2 view .LVU198
+ 986 004a 0F23     		movs	r3, #15
+ 987              	.LVL84:
+ 988              	.LBB36:
+ 989              	.LBI36:
+  42:Core/Src/NRF24.c **** 
+ 990              		.loc 1 42 22 view .LVU199
+ 991              	.LBB37:
+  46:Core/Src/NRF24.c **** 
+ 992              		.loc 1 46 3 view .LVU200
+  46:Core/Src/NRF24.c **** 
+ 993              		.loc 1 46 41 is_stmt 0 view .LVU201
+ 994 004c 084A     		ldr	r2, .L53
+ 995 004e 1268     		ldr	r2, [r2]
+ 996 0050 0849     		ldr	r1, .L53+4
+ 997 0052 A1FB0212 		umull	r1, r2, r1, r2
+ 998 0056 D20C     		lsrs	r2, r2, #19
+  46:Core/Src/NRF24.c **** 
+ 999              		.loc 1 46 10 view .LVU202
+ 1000 0058 02FB03F3 		mul	r3, r2, r3
+  50:Core/Src/NRF24.c **** 
+ 1001              		.loc 1 50 3 is_stmt 1 view .LVU203
+ 1002              	.L51:
+  50:Core/Src/NRF24.c **** 
+ 1003              		.loc 1 50 20 view .LVU204
+  50:Core/Src/NRF24.c **** 
+ 1004              		.loc 1 50 9 view .LVU205
+  50:Core/Src/NRF24.c **** 
+ 1005              		.loc 1 50 16 is_stmt 0 view .LVU206
+ 1006 005c 1A46     		mov	r2, r3
+ 1007 005e 013B     		subs	r3, r3, #1
+  50:Core/Src/NRF24.c **** 
+ 1008              		.loc 1 50 9 view .LVU207
+ 1009 0060 002A     		cmp	r2, #0
+ 1010 0062 FBD1     		bne	.L51
+ 1011              	.LVL85:
+  50:Core/Src/NRF24.c **** 
+ 1012              		.loc 1 50 9 view .LVU208
+ 1013              	.LBE37:
+ 1014              	.LBE36:
+ 279:Core/Src/NRF24.c **** 	CE_RESET;
+ 1015              		.loc 1 279 2 is_stmt 1 view .LVU209
+ 1016 0064 0821     		movs	r1, #8
+ 1017 0066 0448     		ldr	r0, .L53+8
+ 1018 0068 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 1019              	.LVL86:
+ 280:Core/Src/NRF24.c **** }
+ 1020              		.loc 1 280 1 is_stmt 0 view .LVU210
+ 1021 006c 10BD     		pop	{r4, pc}
+ 1022              	.LVL87:
+ 1023              	.L54:
+ 1024              		.loc 1 280 1 view .LVU211
+ 1025 006e 00BF     		.align	2
+ 1026              	.L53:
+ARM GAS  /tmp/ccq8oCVq.s 			page 25
+
+
+ 1027 0070 00000000 		.word	SystemCoreClock
+ 1028 0074 819F5E16 		.word	375299969
+ 1029 0078 00080140 		.word	1073809408
+ 1030              		.cfi_endproc
+ 1031              	.LFE76:
+ 1033              		.section	.text.NRF24L01_Receive,"ax",%progbits
+ 1034              		.align	1
+ 1035              		.global	NRF24L01_Receive
+ 1036              		.syntax unified
+ 1037              		.thumb
+ 1038              		.thumb_func
+ 1040              	NRF24L01_Receive:
+ 1041              	.LFB77:
+ 281:Core/Src/NRF24.c **** 
+ 282:Core/Src/NRF24.c **** //------------------------------------------------
+ 283:Core/Src/NRF24.c **** /*
+ 284:Core/Src/NRF24.c **** uint8_t NRF24L01_Send_Complete()
+ 285:Core/Src/NRF24.c **** {
+ 286:Core/Src/NRF24.c **** 
+ 287:Core/Src/NRF24.c **** 	uint8_t regval=0x00;
+ 288:Core/Src/NRF24.c **** 
+ 289:Core/Src/NRF24.c **** 	regval = NRF24_ReadReg(OBSERVE_TX);
+ 290:Core/Src/NRF24.c **** 	//Уходим в режим приёмника
+ 291:Core/Src/NRF24.c **** 	NRF24L01_RX_Mode();
+ 292:Core/Src/NRF24.c **** 	return regval;
+ 293:Core/Src/NRF24.c **** 
+ 294:Core/Src/NRF24.c **** }
+ 295:Core/Src/NRF24.c **** */
+ 296:Core/Src/NRF24.c **** //------------------------------------------------
+ 297:Core/Src/NRF24.c **** 
+ 298:Core/Src/NRF24.c **** void NRF24L01_Receive(void)
+ 299:Core/Src/NRF24.c **** 
+ 300:Core/Src/NRF24.c **** {
+ 1042              		.loc 1 300 1 is_stmt 1 view -0
+ 1043              		.cfi_startproc
+ 1044              		@ args = 0, pretend = 0, frame = 0
+ 1045              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1046 0000 10B5     		push	{r4, lr}
+ 1047              	.LCFI28:
+ 1048              		.cfi_def_cfa_offset 8
+ 1049              		.cfi_offset 4, -8
+ 1050              		.cfi_offset 14, -4
+ 301:Core/Src/NRF24.c ****   //uint8_t status=0x0;
+ 302:Core/Src/NRF24.c **** 
+ 303:Core/Src/NRF24.c ****   //status = NRF24_ReadReg(STATUS);
+ 304:Core/Src/NRF24.c ****   NRF24_Read_Buf(RD_RX_PLOAD,RX_BUF,TX_PLOAD_WIDTH);
+ 1051              		.loc 1 304 3 view .LVU213
+ 1052 0002 0A4C     		ldr	r4, .L57
+ 1053 0004 0522     		movs	r2, #5
+ 1054 0006 2146     		mov	r1, r4
+ 1055 0008 6120     		movs	r0, #97
+ 1056 000a FFF7FEFF 		bl	NRF24_Read_Buf
+ 1057              	.LVL88:
+ 305:Core/Src/NRF24.c ****     //if(status & 0x2){
+ 306:Core/Src/NRF24.c ****     	pressure[1] = ((uint32_t)(RX_BUF[2]<<16))+((uint32_t)(RX_BUF[1]<<8))+((uint32_t)(RX_BUF[0]));
+ 1058              		.loc 1 306 6 view .LVU214
+ 1059              		.loc 1 306 38 is_stmt 0 view .LVU215
+ARM GAS  /tmp/ccq8oCVq.s 			page 26
+
+
+ 1060 000e A278     		ldrb	r2, [r4, #2]	@ zero_extendqisi2
+ 1061              		.loc 1 306 66 view .LVU216
+ 1062 0010 6378     		ldrb	r3, [r4, #1]	@ zero_extendqisi2
+ 1063              		.loc 1 306 69 view .LVU217
+ 1064 0012 1B02     		lsls	r3, r3, #8
+ 1065              		.loc 1 306 47 view .LVU218
+ 1066 0014 03EB0243 		add	r3, r3, r2, lsl #16
+ 1067              		.loc 1 306 93 view .LVU219
+ 1068 0018 2278     		ldrb	r2, [r4]	@ zero_extendqisi2
+ 1069              		.loc 1 306 74 view .LVU220
+ 1070 001a 1344     		add	r3, r3, r2
+ 1071              		.loc 1 306 18 view .LVU221
+ 1072 001c 044A     		ldr	r2, .L57+4
+ 1073 001e 5360     		str	r3, [r2, #4]
+ 307:Core/Src/NRF24.c ****     	pressure[2] = (uint32_t)(RX_BUF[3]);
+ 1074              		.loc 1 307 6 is_stmt 1 view .LVU222
+ 1075              		.loc 1 307 37 is_stmt 0 view .LVU223
+ 1076 0020 E378     		ldrb	r3, [r4, #3]	@ zero_extendqisi2
+ 1077              		.loc 1 307 18 view .LVU224
+ 1078 0022 9360     		str	r3, [r2, #8]
+ 308:Core/Src/NRF24.c ****     	pressure[3] = (uint32_t)(RX_BUF[4]);
+ 1079              		.loc 1 308 6 is_stmt 1 view .LVU225
+ 1080              		.loc 1 308 37 is_stmt 0 view .LVU226
+ 1081 0024 2379     		ldrb	r3, [r4, #4]	@ zero_extendqisi2
+ 1082              		.loc 1 308 18 view .LVU227
+ 1083 0026 D360     		str	r3, [r2, #12]
+ 309:Core/Src/NRF24.c **** }
+ 1084              		.loc 1 309 1 view .LVU228
+ 1085 0028 10BD     		pop	{r4, pc}
+ 1086              	.L58:
+ 1087 002a 00BF     		.align	2
+ 1088              	.L57:
+ 1089 002c 00000000 		.word	.LANCHOR1
+ 1090 0030 00000000 		.word	pressure
+ 1091              		.cfi_endproc
+ 1092              	.LFE77:
+ 1094              		.section	.text.NRF24L01_IT,"ax",%progbits
+ 1095              		.align	1
+ 1096              		.global	NRF24L01_IT
+ 1097              		.syntax unified
+ 1098              		.thumb
+ 1099              		.thumb_func
+ 1101              	NRF24L01_IT:
+ 1102              	.LFB78:
+ 310:Core/Src/NRF24.c **** 
+ 311:Core/Src/NRF24.c **** //--------------------------------------------------
+ 312:Core/Src/NRF24.c **** 
+ 313:Core/Src/NRF24.c **** void NRF24L01_IT(void)
+ 314:Core/Src/NRF24.c **** {
+ 1103              		.loc 1 314 1 is_stmt 1 view -0
+ 1104              		.cfi_startproc
+ 1105              		@ args = 0, pretend = 0, frame = 0
+ 1106              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1107 0000 08B5     		push	{r3, lr}
+ 1108              	.LCFI29:
+ 1109              		.cfi_def_cfa_offset 8
+ 1110              		.cfi_offset 3, -8
+ARM GAS  /tmp/ccq8oCVq.s 			page 27
+
+
+ 1111              		.cfi_offset 14, -4
+ 315:Core/Src/NRF24.c **** 	uint8_t status=0x00;
+ 1112              		.loc 1 315 2 view .LVU230
+ 1113              	.LVL89:
+ 316:Core/Src/NRF24.c **** 	status = NRF24_ReadReg(STATUS);
+ 1114              		.loc 1 316 2 view .LVU231
+ 1115              		.loc 1 316 11 is_stmt 0 view .LVU232
+ 1116 0002 0720     		movs	r0, #7
+ 1117 0004 FFF7FEFF 		bl	NRF24_ReadReg
+ 1118              	.LVL90:
+ 317:Core/Src/NRF24.c **** 	if((status & RX_DR)&&(status & TX_DS))
+ 1119              		.loc 1 317 2 is_stmt 1 view .LVU233
+ 1120              		.loc 1 317 4 is_stmt 0 view .LVU234
+ 1121 0008 00F06003 		and	r3, r0, #96
+ 1122 000c 602B     		cmp	r3, #96
+ 1123 000e 18D0     		beq	.L65
+ 318:Core/Src/NRF24.c **** 	{
+ 319:Core/Src/NRF24.c **** 			NRF24_WriteReg(STATUS, RX_DR);
+ 320:Core/Src/NRF24.c **** 			NRF24L01_Receive();
+ 321:Core/Src/NRF24.c **** 			NRF24_WriteReg(STATUS, TX_DS);
+ 322:Core/Src/NRF24.c **** 			pressure[2] = (NRF24_ReadReg(OBSERVE_TX) & 0xF);
+ 323:Core/Src/NRF24.c **** 			NRF24L01_RX_Mode();
+ 324:Core/Src/NRF24.c **** 
+ 325:Core/Src/NRF24.c **** 	}
+ 326:Core/Src/NRF24.c **** 	else if(status & RX_DR)
+ 1124              		.loc 1 326 7 is_stmt 1 view .LVU235
+ 1125              		.loc 1 326 9 is_stmt 0 view .LVU236
+ 1126 0010 10F0400F 		tst	r0, #64
+ 1127 0014 29D1     		bne	.L66
+ 327:Core/Src/NRF24.c **** 	{
+ 328:Core/Src/NRF24.c **** 		NRF24_WriteReg(STATUS, RX_DR);
+ 329:Core/Src/NRF24.c **** 		NRF24L01_Receive();
+ 330:Core/Src/NRF24.c **** 	}
+ 331:Core/Src/NRF24.c **** 	else if(status & TX_DS)
+ 1128              		.loc 1 331 7 is_stmt 1 view .LVU237
+ 1129              		.loc 1 331 9 is_stmt 0 view .LVU238
+ 1130 0016 10F0200F 		tst	r0, #32
+ 1131 001a 2DD1     		bne	.L67
+ 332:Core/Src/NRF24.c **** 	{
+ 333:Core/Src/NRF24.c **** 	 	NRF24_WriteReg(STATUS, TX_DS);
+ 334:Core/Src/NRF24.c **** 	 	pressure[2] = (NRF24_ReadReg(OBSERVE_TX) & 0xF);
+ 335:Core/Src/NRF24.c **** 	 	NRF24L01_RX_Mode();
+ 336:Core/Src/NRF24.c **** 	}
+ 337:Core/Src/NRF24.c **** 	else if(status & MAX_RT)
+ 1132              		.loc 1 337 7 is_stmt 1 view .LVU239
+ 1133              		.loc 1 337 9 is_stmt 0 view .LVU240
+ 1134 001c 10F0100F 		tst	r0, #16
+ 1135 0020 29D0     		beq	.L59
+ 338:Core/Src/NRF24.c **** 	{
+ 339:Core/Src/NRF24.c **** 		NRF24_WriteReg(STATUS, MAX_RT);
+ 1136              		.loc 1 339 3 is_stmt 1 view .LVU241
+ 1137 0022 1021     		movs	r1, #16
+ 1138 0024 0720     		movs	r0, #7
+ 1139              	.LVL91:
+ 1140              		.loc 1 339 3 is_stmt 0 view .LVU242
+ 1141 0026 FFF7FEFF 		bl	NRF24_WriteReg
+ 1142              	.LVL92:
+ARM GAS  /tmp/ccq8oCVq.s 			page 28
+
+
+ 340:Core/Src/NRF24.c **** 		NRF24_FlushTX();
+ 1143              		.loc 1 340 3 is_stmt 1 view .LVU243
+ 1144 002a FFF7FEFF 		bl	NRF24_FlushTX
+ 1145              	.LVL93:
+ 341:Core/Src/NRF24.c **** 		pressure[2] = (NRF24_ReadReg(OBSERVE_TX) & 0xF);
+ 1146              		.loc 1 341 3 view .LVU244
+ 1147              		.loc 1 341 18 is_stmt 0 view .LVU245
+ 1148 002e 0820     		movs	r0, #8
+ 1149 0030 FFF7FEFF 		bl	NRF24_ReadReg
+ 1150              	.LVL94:
+ 1151              		.loc 1 341 44 view .LVU246
+ 1152 0034 00F00F00 		and	r0, r0, #15
+ 1153              		.loc 1 341 15 view .LVU247
+ 1154 0038 164B     		ldr	r3, .L68
+ 1155 003a 9860     		str	r0, [r3, #8]
+ 342:Core/Src/NRF24.c **** 		NRF24L01_RX_Mode();
+ 1156              		.loc 1 342 3 is_stmt 1 view .LVU248
+ 1157 003c FFF7FEFF 		bl	NRF24L01_RX_Mode
+ 1158              	.LVL95:
+ 343:Core/Src/NRF24.c **** 	}
+ 344:Core/Src/NRF24.c **** }
+ 1159              		.loc 1 344 1 is_stmt 0 view .LVU249
+ 1160 0040 19E0     		b	.L59
+ 1161              	.LVL96:
+ 1162              	.L65:
+ 319:Core/Src/NRF24.c **** 			NRF24L01_Receive();
+ 1163              		.loc 1 319 4 is_stmt 1 view .LVU250
+ 1164 0042 4021     		movs	r1, #64
+ 1165 0044 0720     		movs	r0, #7
+ 1166              	.LVL97:
+ 319:Core/Src/NRF24.c **** 			NRF24L01_Receive();
+ 1167              		.loc 1 319 4 is_stmt 0 view .LVU251
+ 1168 0046 FFF7FEFF 		bl	NRF24_WriteReg
+ 1169              	.LVL98:
+ 320:Core/Src/NRF24.c **** 			NRF24_WriteReg(STATUS, TX_DS);
+ 1170              		.loc 1 320 4 is_stmt 1 view .LVU252
+ 1171 004a FFF7FEFF 		bl	NRF24L01_Receive
+ 1172              	.LVL99:
+ 321:Core/Src/NRF24.c **** 			pressure[2] = (NRF24_ReadReg(OBSERVE_TX) & 0xF);
+ 1173              		.loc 1 321 4 view .LVU253
+ 1174 004e 2021     		movs	r1, #32
+ 1175 0050 0720     		movs	r0, #7
+ 1176 0052 FFF7FEFF 		bl	NRF24_WriteReg
+ 1177              	.LVL100:
+ 322:Core/Src/NRF24.c **** 			NRF24L01_RX_Mode();
+ 1178              		.loc 1 322 4 view .LVU254
+ 322:Core/Src/NRF24.c **** 			NRF24L01_RX_Mode();
+ 1179              		.loc 1 322 19 is_stmt 0 view .LVU255
+ 1180 0056 0820     		movs	r0, #8
+ 1181 0058 FFF7FEFF 		bl	NRF24_ReadReg
+ 1182              	.LVL101:
+ 322:Core/Src/NRF24.c **** 			NRF24L01_RX_Mode();
+ 1183              		.loc 1 322 45 view .LVU256
+ 1184 005c 00F00F00 		and	r0, r0, #15
+ 322:Core/Src/NRF24.c **** 			NRF24L01_RX_Mode();
+ 1185              		.loc 1 322 16 view .LVU257
+ 1186 0060 0C4B     		ldr	r3, .L68
+ARM GAS  /tmp/ccq8oCVq.s 			page 29
+
+
+ 1187 0062 9860     		str	r0, [r3, #8]
+ 323:Core/Src/NRF24.c **** 
+ 1188              		.loc 1 323 4 is_stmt 1 view .LVU258
+ 1189 0064 FFF7FEFF 		bl	NRF24L01_RX_Mode
+ 1190              	.LVL102:
+ 1191 0068 05E0     		b	.L59
+ 1192              	.LVL103:
+ 1193              	.L66:
+ 328:Core/Src/NRF24.c **** 		NRF24L01_Receive();
+ 1194              		.loc 1 328 3 view .LVU259
+ 1195 006a 4021     		movs	r1, #64
+ 1196 006c 0720     		movs	r0, #7
+ 1197              	.LVL104:
+ 328:Core/Src/NRF24.c **** 		NRF24L01_Receive();
+ 1198              		.loc 1 328 3 is_stmt 0 view .LVU260
+ 1199 006e FFF7FEFF 		bl	NRF24_WriteReg
+ 1200              	.LVL105:
+ 329:Core/Src/NRF24.c **** 	}
+ 1201              		.loc 1 329 3 is_stmt 1 view .LVU261
+ 1202 0072 FFF7FEFF 		bl	NRF24L01_Receive
+ 1203              	.LVL106:
+ 1204              	.L59:
+ 1205              		.loc 1 344 1 is_stmt 0 view .LVU262
+ 1206 0076 08BD     		pop	{r3, pc}
+ 1207              	.LVL107:
+ 1208              	.L67:
+ 333:Core/Src/NRF24.c **** 	 	pressure[2] = (NRF24_ReadReg(OBSERVE_TX) & 0xF);
+ 1209              		.loc 1 333 4 is_stmt 1 view .LVU263
+ 1210 0078 2021     		movs	r1, #32
+ 1211 007a 0720     		movs	r0, #7
+ 1212              	.LVL108:
+ 333:Core/Src/NRF24.c **** 	 	pressure[2] = (NRF24_ReadReg(OBSERVE_TX) & 0xF);
+ 1213              		.loc 1 333 4 is_stmt 0 view .LVU264
+ 1214 007c FFF7FEFF 		bl	NRF24_WriteReg
+ 1215              	.LVL109:
+ 334:Core/Src/NRF24.c **** 	 	NRF24L01_RX_Mode();
+ 1216              		.loc 1 334 4 is_stmt 1 view .LVU265
+ 334:Core/Src/NRF24.c **** 	 	NRF24L01_RX_Mode();
+ 1217              		.loc 1 334 19 is_stmt 0 view .LVU266
+ 1218 0080 0820     		movs	r0, #8
+ 1219 0082 FFF7FEFF 		bl	NRF24_ReadReg
+ 1220              	.LVL110:
+ 334:Core/Src/NRF24.c **** 	 	NRF24L01_RX_Mode();
+ 1221              		.loc 1 334 45 view .LVU267
+ 1222 0086 00F00F00 		and	r0, r0, #15
+ 334:Core/Src/NRF24.c **** 	 	NRF24L01_RX_Mode();
+ 1223              		.loc 1 334 16 view .LVU268
+ 1224 008a 024B     		ldr	r3, .L68
+ 1225 008c 9860     		str	r0, [r3, #8]
+ 335:Core/Src/NRF24.c **** 	}
+ 1226              		.loc 1 335 4 is_stmt 1 view .LVU269
+ 1227 008e FFF7FEFF 		bl	NRF24L01_RX_Mode
+ 1228              	.LVL111:
+ 1229 0092 F0E7     		b	.L59
+ 1230              	.L69:
+ 1231              		.align	2
+ 1232              	.L68:
+ARM GAS  /tmp/ccq8oCVq.s 			page 30
+
+
+ 1233 0094 00000000 		.word	pressure
+ 1234              		.cfi_endproc
+ 1235              	.LFE78:
+ 1237              		.section	.text.NRF24_ini,"ax",%progbits
+ 1238              		.align	1
+ 1239              		.global	NRF24_ini
+ 1240              		.syntax unified
+ 1241              		.thumb
+ 1242              		.thumb_func
+ 1244              	NRF24_ini:
+ 1245              	.LFB79:
+ 345:Core/Src/NRF24.c **** 
+ 346:Core/Src/NRF24.c **** //--------------------------------------------------
+ 347:Core/Src/NRF24.c **** void NRF24_ini(void)
+ 348:Core/Src/NRF24.c **** 
+ 349:Core/Src/NRF24.c **** {
+ 1246              		.loc 1 349 1 view -0
+ 1247              		.cfi_startproc
+ 1248              		@ args = 0, pretend = 0, frame = 0
+ 1249              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1250 0000 10B5     		push	{r4, lr}
+ 1251              	.LCFI30:
+ 1252              		.cfi_def_cfa_offset 8
+ 1253              		.cfi_offset 4, -8
+ 1254              		.cfi_offset 14, -4
+ 350:Core/Src/NRF24.c **** 	  CE_RESET;
+ 1255              		.loc 1 350 4 view .LVU271
+ 1256 0002 0022     		movs	r2, #0
+ 1257 0004 0821     		movs	r1, #8
+ 1258 0006 2D48     		ldr	r0, .L74
+ 1259 0008 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 1260              	.LVL112:
+ 351:Core/Src/NRF24.c **** 	  DelayMicro(5000);
+ 1261              		.loc 1 351 4 view .LVU272
+ 1262 000c 41F28833 		movw	r3, #5000
+ 1263              	.LVL113:
+ 1264              	.LBB38:
+ 1265              	.LBI38:
+  42:Core/Src/NRF24.c **** 
+ 1266              		.loc 1 42 22 view .LVU273
+ 1267              	.LBB39:
+  46:Core/Src/NRF24.c **** 
+ 1268              		.loc 1 46 3 view .LVU274
+  46:Core/Src/NRF24.c **** 
+ 1269              		.loc 1 46 41 is_stmt 0 view .LVU275
+ 1270 0010 2B4A     		ldr	r2, .L74+4
+ 1271 0012 1268     		ldr	r2, [r2]
+ 1272 0014 2B49     		ldr	r1, .L74+8
+ 1273 0016 A1FB0212 		umull	r1, r2, r1, r2
+ 1274 001a D20C     		lsrs	r2, r2, #19
+  46:Core/Src/NRF24.c **** 
+ 1275              		.loc 1 46 10 view .LVU276
+ 1276 001c 02FB03F3 		mul	r3, r2, r3
+  50:Core/Src/NRF24.c **** 
+ 1277              		.loc 1 50 3 is_stmt 1 view .LVU277
+ 1278              	.L71:
+  50:Core/Src/NRF24.c **** 
+ARM GAS  /tmp/ccq8oCVq.s 			page 31
+
+
+ 1279              		.loc 1 50 20 view .LVU278
+  50:Core/Src/NRF24.c **** 
+ 1280              		.loc 1 50 9 view .LVU279
+  50:Core/Src/NRF24.c **** 
+ 1281              		.loc 1 50 16 is_stmt 0 view .LVU280
+ 1282 0020 1A46     		mov	r2, r3
+ 1283 0022 013B     		subs	r3, r3, #1
+  50:Core/Src/NRF24.c **** 
+ 1284              		.loc 1 50 9 view .LVU281
+ 1285 0024 002A     		cmp	r2, #0
+ 1286 0026 FBD1     		bne	.L71
+ 1287              	.LVL114:
+  50:Core/Src/NRF24.c **** 
+ 1288              		.loc 1 50 9 view .LVU282
+ 1289              	.LBE39:
+ 1290              	.LBE38:
+ 352:Core/Src/NRF24.c **** 	  NRF24_WriteReg(CONFIG, 0x0a); 						// Set PWR_UP bit, enable CRC(1 byte) &Prim_RX:0 (Transmitte
+ 1291              		.loc 1 352 4 is_stmt 1 view .LVU283
+ 1292 0028 0A21     		movs	r1, #10
+ 1293 002a 0020     		movs	r0, #0
+ 1294 002c FFF7FEFF 		bl	NRF24_WriteReg
+ 1295              	.LVL115:
+ 353:Core/Src/NRF24.c **** 	  DelayMicro(5000);
+ 1296              		.loc 1 353 4 view .LVU284
+ 1297 0030 41F28833 		movw	r3, #5000
+ 1298              	.LVL116:
+ 1299              	.LBB40:
+ 1300              	.LBI40:
+  42:Core/Src/NRF24.c **** 
+ 1301              		.loc 1 42 22 view .LVU285
+ 1302              	.LBB41:
+  46:Core/Src/NRF24.c **** 
+ 1303              		.loc 1 46 3 view .LVU286
+  46:Core/Src/NRF24.c **** 
+ 1304              		.loc 1 46 41 is_stmt 0 view .LVU287
+ 1305 0034 224A     		ldr	r2, .L74+4
+ 1306 0036 1268     		ldr	r2, [r2]
+ 1307 0038 2249     		ldr	r1, .L74+8
+ 1308 003a A1FB0212 		umull	r1, r2, r1, r2
+ 1309 003e D20C     		lsrs	r2, r2, #19
+  46:Core/Src/NRF24.c **** 
+ 1310              		.loc 1 46 10 view .LVU288
+ 1311 0040 02FB03F3 		mul	r3, r2, r3
+  50:Core/Src/NRF24.c **** 
+ 1312              		.loc 1 50 3 is_stmt 1 view .LVU289
+ 1313              	.L72:
+  50:Core/Src/NRF24.c **** 
+ 1314              		.loc 1 50 20 view .LVU290
+  50:Core/Src/NRF24.c **** 
+ 1315              		.loc 1 50 9 view .LVU291
+  50:Core/Src/NRF24.c **** 
+ 1316              		.loc 1 50 16 is_stmt 0 view .LVU292
+ 1317 0044 1A46     		mov	r2, r3
+ 1318 0046 013B     		subs	r3, r3, #1
+  50:Core/Src/NRF24.c **** 
+ 1319              		.loc 1 50 9 view .LVU293
+ 1320 0048 002A     		cmp	r2, #0
+ARM GAS  /tmp/ccq8oCVq.s 			page 32
+
+
+ 1321 004a FBD1     		bne	.L72
+ 1322              	.LVL117:
+  50:Core/Src/NRF24.c **** 
+ 1323              		.loc 1 50 9 view .LVU294
+ 1324              	.LBE41:
+ 1325              	.LBE40:
+ 354:Core/Src/NRF24.c **** 	  NRF24_WriteReg(EN_AA, 0x01); 							// Enable Pipe0
+ 1326              		.loc 1 354 4 is_stmt 1 view .LVU295
+ 1327 004c 0121     		movs	r1, #1
+ 1328 004e 0846     		mov	r0, r1
+ 1329 0050 FFF7FEFF 		bl	NRF24_WriteReg
+ 1330              	.LVL118:
+ 355:Core/Src/NRF24.c **** 	  NRF24_WriteReg(EN_RXADDR, 0x01); 						// Enable Pipe0
+ 1331              		.loc 1 355 4 view .LVU296
+ 1332 0054 0121     		movs	r1, #1
+ 1333 0056 0220     		movs	r0, #2
+ 1334 0058 FFF7FEFF 		bl	NRF24_WriteReg
+ 1335              	.LVL119:
+ 356:Core/Src/NRF24.c **** 	  NRF24_WriteReg(SETUP_AW, 0x01); 						// Setup address width=3 bytes
+ 1336              		.loc 1 356 4 view .LVU297
+ 1337 005c 0121     		movs	r1, #1
+ 1338 005e 0320     		movs	r0, #3
+ 1339 0060 FFF7FEFF 		bl	NRF24_WriteReg
+ 1340              	.LVL120:
+ 357:Core/Src/NRF24.c **** 	  NRF24_WriteReg(SETUP_RETR, 0x5F); 					// 1500us, 15 retrans
+ 1341              		.loc 1 357 4 view .LVU298
+ 1342 0064 5F21     		movs	r1, #95
+ 1343 0066 0420     		movs	r0, #4
+ 1344 0068 FFF7FEFF 		bl	NRF24_WriteReg
+ 1345              	.LVL121:
+ 358:Core/Src/NRF24.c **** 	  NRF24_ToggleFeatures();
+ 1346              		.loc 1 358 4 view .LVU299
+ 1347 006c FFF7FEFF 		bl	NRF24_ToggleFeatures
+ 1348              	.LVL122:
+ 359:Core/Src/NRF24.c **** 	  NRF24_WriteReg(FEATURE, 0x6);							//Enable ACK payload (require dynamic payload)
+ 1349              		.loc 1 359 4 view .LVU300
+ 1350 0070 0621     		movs	r1, #6
+ 1351 0072 1D20     		movs	r0, #29
+ 1352 0074 FFF7FEFF 		bl	NRF24_WriteReg
+ 1353              	.LVL123:
+ 360:Core/Src/NRF24.c **** 	  NRF24_WriteReg(DYNPD, 0x1);							//Dynamic payload pipe 0
+ 1354              		.loc 1 360 4 view .LVU301
+ 1355 0078 0121     		movs	r1, #1
+ 1356 007a 1C20     		movs	r0, #28
+ 1357 007c FFF7FEFF 		bl	NRF24_WriteReg
+ 1358              	.LVL124:
+ 361:Core/Src/NRF24.c **** 	  NRF24_WriteReg(STATUS, 0x70); 						//Reset flags for IRQ
+ 1359              		.loc 1 361 4 view .LVU302
+ 1360 0080 7021     		movs	r1, #112
+ 1361 0082 0720     		movs	r0, #7
+ 1362 0084 FFF7FEFF 		bl	NRF24_WriteReg
+ 1363              	.LVL125:
+ 362:Core/Src/NRF24.c **** 	  NRF24_WriteReg(RF_CH, 70); 							// частота 2470 MHz
+ 1364              		.loc 1 362 4 view .LVU303
+ 1365 0088 4621     		movs	r1, #70
+ 1366 008a 0520     		movs	r0, #5
+ 1367 008c FFF7FEFF 		bl	NRF24_WriteReg
+ARM GAS  /tmp/ccq8oCVq.s 			page 33
+
+
+ 1368              	.LVL126:
+ 363:Core/Src/NRF24.c **** 	  NRF24_WriteReg(RF_SETUP, 0x26); 						//TX_PWR:0dBm, Datarate:250kbps
+ 1369              		.loc 1 363 4 view .LVU304
+ 1370 0090 2621     		movs	r1, #38
+ 1371 0092 0620     		movs	r0, #6
+ 1372 0094 FFF7FEFF 		bl	NRF24_WriteReg
+ 1373              	.LVL127:
+ 364:Core/Src/NRF24.c **** 	  NRF24_Write_Buf(TX_ADDR, TX_ADDRESS, TX_ADR_WIDTH);
+ 1374              		.loc 1 364 4 view .LVU305
+ 1375 0098 0B4C     		ldr	r4, .L74+12
+ 1376 009a 0322     		movs	r2, #3
+ 1377 009c 2146     		mov	r1, r4
+ 1378 009e 1020     		movs	r0, #16
+ 1379 00a0 FFF7FEFF 		bl	NRF24_Write_Buf
+ 1380              	.LVL128:
+ 365:Core/Src/NRF24.c **** 	  NRF24_Write_Buf(RX_ADDR_P0, TX_ADDRESS, TX_ADR_WIDTH);
+ 1381              		.loc 1 365 4 view .LVU306
+ 1382 00a4 0322     		movs	r2, #3
+ 1383 00a6 2146     		mov	r1, r4
+ 1384 00a8 0A20     		movs	r0, #10
+ 1385 00aa FFF7FEFF 		bl	NRF24_Write_Buf
+ 1386              	.LVL129:
+ 366:Core/Src/NRF24.c **** 	  NRF24_WriteReg(RX_PW_P0, TX_PLOAD_WIDTH); 			//Number of bytes in RX payload in data pipe 0
+ 1387              		.loc 1 366 4 view .LVU307
+ 1388 00ae 0521     		movs	r1, #5
+ 1389 00b0 1120     		movs	r0, #17
+ 1390 00b2 FFF7FEFF 		bl	NRF24_WriteReg
+ 1391              	.LVL130:
+ 367:Core/Src/NRF24.c **** 	  NRF24L01_RX_Mode();
+ 1392              		.loc 1 367 4 view .LVU308
+ 1393 00b6 FFF7FEFF 		bl	NRF24L01_RX_Mode
+ 1394              	.LVL131:
+ 368:Core/Src/NRF24.c **** }
+ 1395              		.loc 1 368 1 is_stmt 0 view .LVU309
+ 1396 00ba 10BD     		pop	{r4, pc}
+ 1397              	.L75:
+ 1398              		.align	2
+ 1399              	.L74:
+ 1400 00bc 00080140 		.word	1073809408
+ 1401 00c0 00000000 		.word	SystemCoreClock
+ 1402 00c4 819F5E16 		.word	375299969
+ 1403 00c8 00000000 		.word	.LANCHOR0
+ 1404              		.cfi_endproc
+ 1405              	.LFE79:
+ 1407              		.global	ErrCnt_Fl
+ 1408              		.global	RX_BUF
+ 1409              		.global	RX_ADDRESS_P5
+ 1410              		.global	RX_ADDRESS_P4
+ 1411              		.global	RX_ADDRESS_P3
+ 1412              		.global	RX_ADDRESS_P2
+ 1413              		.global	RX_ADDRESS_P1
+ 1414              		.global	TX_ADDRESS
+ 1415              		.section	.bss.ErrCnt_Fl,"aw",%nobits
+ 1418              	ErrCnt_Fl:
+ 1419 0000 00       		.space	1
+ 1420              		.section	.bss.RX_BUF,"aw",%nobits
+ 1421              		.align	2
+ARM GAS  /tmp/ccq8oCVq.s 			page 34
+
+
+ 1422              		.set	.LANCHOR1,. + 0
+ 1425              	RX_BUF:
+ 1426 0000 00000000 		.space	5
+ 1426      00
+ 1427              		.section	.data.RX_ADDRESS_P1,"aw"
+ 1428              		.align	2
+ 1431              	RX_ADDRESS_P1:
+ 1432 0000 C2       		.ascii	"\302"
+ 1433              		.section	.data.RX_ADDRESS_P2,"aw"
+ 1434              		.align	2
+ 1437              	RX_ADDRESS_P2:
+ 1438 0000 C3       		.ascii	"\303"
+ 1439              		.section	.data.RX_ADDRESS_P3,"aw"
+ 1440              		.align	2
+ 1443              	RX_ADDRESS_P3:
+ 1444 0000 C4       		.ascii	"\304"
+ 1445              		.section	.data.RX_ADDRESS_P4,"aw"
+ 1446              		.align	2
+ 1449              	RX_ADDRESS_P4:
+ 1450 0000 C5       		.ascii	"\305"
+ 1451              		.section	.data.RX_ADDRESS_P5,"aw"
+ 1452              		.align	2
+ 1455              	RX_ADDRESS_P5:
+ 1456 0000 C6       		.ascii	"\306"
+ 1457              		.section	.data.TX_ADDRESS,"aw"
+ 1458              		.align	2
+ 1459              		.set	.LANCHOR0,. + 0
+ 1462              	TX_ADDRESS:
+ 1463 0000 C1B3B4   		.ascii	"\301\263\264"
+ 1464              		.text
+ 1465              	.Letext0:
+ 1466              		.file 2 "/home/seradya/toolchains/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_de
+ 1467              		.file 3 "/home/seradya/toolchains/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint
+ 1468              		.file 4 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
+ 1469              		.file 5 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
+ 1470              		.file 6 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h"
+ 1471              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h"
+ 1472              		.file 8 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h"
+ 1473              		.file 9 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h"
+ARM GAS  /tmp/ccq8oCVq.s 			page 35
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 NRF24.c
+     /tmp/ccq8oCVq.s:18     .text.NRF24_ReadReg:0000000000000000 $t
+     /tmp/ccq8oCVq.s:24     .text.NRF24_ReadReg:0000000000000000 NRF24_ReadReg
+     /tmp/ccq8oCVq.s:103    .text.NRF24_ReadReg:0000000000000068 $d
+     /tmp/ccq8oCVq.s:109    .text.NRF24_WriteReg:0000000000000000 $t
+     /tmp/ccq8oCVq.s:115    .text.NRF24_WriteReg:0000000000000000 NRF24_WriteReg
+     /tmp/ccq8oCVq.s:180    .text.NRF24_WriteReg:0000000000000054 $d
+     /tmp/ccq8oCVq.s:186    .text.NRF24_ToggleFeatures:0000000000000000 $t
+     /tmp/ccq8oCVq.s:192    .text.NRF24_ToggleFeatures:0000000000000000 NRF24_ToggleFeatures
+     /tmp/ccq8oCVq.s:275    .text.NRF24_ToggleFeatures:000000000000005c $d
+     /tmp/ccq8oCVq.s:283    .text.NRF24_Read_Buf:0000000000000000 $t
+     /tmp/ccq8oCVq.s:289    .text.NRF24_Read_Buf:0000000000000000 NRF24_Read_Buf
+     /tmp/ccq8oCVq.s:356    .text.NRF24_Read_Buf:0000000000000048 $d
+     /tmp/ccq8oCVq.s:362    .text.NRF24_Write_Buf:0000000000000000 $t
+     /tmp/ccq8oCVq.s:368    .text.NRF24_Write_Buf:0000000000000000 NRF24_Write_Buf
+     /tmp/ccq8oCVq.s:463    .text.NRF24_Write_Buf:0000000000000060 $d
+     /tmp/ccq8oCVq.s:471    .text.NRF24_FlushRX:0000000000000000 $t
+     /tmp/ccq8oCVq.s:477    .text.NRF24_FlushRX:0000000000000000 NRF24_FlushRX
+     /tmp/ccq8oCVq.s:549    .text.NRF24_FlushRX:0000000000000048 $d
+     /tmp/ccq8oCVq.s:557    .text.NRF24_FlushTX:0000000000000000 $t
+     /tmp/ccq8oCVq.s:563    .text.NRF24_FlushTX:0000000000000000 NRF24_FlushTX
+     /tmp/ccq8oCVq.s:635    .text.NRF24_FlushTX:0000000000000048 $d
+     /tmp/ccq8oCVq.s:643    .text.NRF24L01_RX_Mode:0000000000000000 $t
+     /tmp/ccq8oCVq.s:649    .text.NRF24L01_RX_Mode:0000000000000000 NRF24L01_RX_Mode
+     /tmp/ccq8oCVq.s:724    .text.NRF24L01_RX_Mode:0000000000000044 $d
+     /tmp/ccq8oCVq.s:731    .text.NRF24L01_TX_Mode:0000000000000000 $t
+     /tmp/ccq8oCVq.s:737    .text.NRF24L01_TX_Mode:0000000000000000 NRF24L01_TX_Mode
+     /tmp/ccq8oCVq.s:775    .text.NRF24L01_TX_Mode:0000000000000020 $d
+     /tmp/ccq8oCVq.s:781    .text.NRF24_Transmit:0000000000000000 $t
+     /tmp/ccq8oCVq.s:787    .text.NRF24_Transmit:0000000000000000 NRF24_Transmit
+     /tmp/ccq8oCVq.s:892    .text.NRF24_Transmit:0000000000000070 $d
+     /tmp/ccq8oCVq.s:900    .text.NRF24L01_Send:0000000000000000 $t
+     /tmp/ccq8oCVq.s:906    .text.NRF24L01_Send:0000000000000000 NRF24L01_Send
+     /tmp/ccq8oCVq.s:1027   .text.NRF24L01_Send:0000000000000070 $d
+     /tmp/ccq8oCVq.s:1034   .text.NRF24L01_Receive:0000000000000000 $t
+     /tmp/ccq8oCVq.s:1040   .text.NRF24L01_Receive:0000000000000000 NRF24L01_Receive
+     /tmp/ccq8oCVq.s:1089   .text.NRF24L01_Receive:000000000000002c $d
+     /tmp/ccq8oCVq.s:1095   .text.NRF24L01_IT:0000000000000000 $t
+     /tmp/ccq8oCVq.s:1101   .text.NRF24L01_IT:0000000000000000 NRF24L01_IT
+     /tmp/ccq8oCVq.s:1233   .text.NRF24L01_IT:0000000000000094 $d
+     /tmp/ccq8oCVq.s:1238   .text.NRF24_ini:0000000000000000 $t
+     /tmp/ccq8oCVq.s:1244   .text.NRF24_ini:0000000000000000 NRF24_ini
+     /tmp/ccq8oCVq.s:1400   .text.NRF24_ini:00000000000000bc $d
+     /tmp/ccq8oCVq.s:1418   .bss.ErrCnt_Fl:0000000000000000 ErrCnt_Fl
+     /tmp/ccq8oCVq.s:1425   .bss.RX_BUF:0000000000000000 RX_BUF
+     /tmp/ccq8oCVq.s:1455   .data.RX_ADDRESS_P5:0000000000000000 RX_ADDRESS_P5
+     /tmp/ccq8oCVq.s:1449   .data.RX_ADDRESS_P4:0000000000000000 RX_ADDRESS_P4
+     /tmp/ccq8oCVq.s:1443   .data.RX_ADDRESS_P3:0000000000000000 RX_ADDRESS_P3
+     /tmp/ccq8oCVq.s:1437   .data.RX_ADDRESS_P2:0000000000000000 RX_ADDRESS_P2
+     /tmp/ccq8oCVq.s:1431   .data.RX_ADDRESS_P1:0000000000000000 RX_ADDRESS_P1
+     /tmp/ccq8oCVq.s:1462   .data.TX_ADDRESS:0000000000000000 TX_ADDRESS
+     /tmp/ccq8oCVq.s:1419   .bss.ErrCnt_Fl:0000000000000000 $d
+     /tmp/ccq8oCVq.s:1421   .bss.RX_BUF:0000000000000000 $d
+     /tmp/ccq8oCVq.s:1428   .data.RX_ADDRESS_P1:0000000000000000 $d
+     /tmp/ccq8oCVq.s:1434   .data.RX_ADDRESS_P2:0000000000000000 $d
+     /tmp/ccq8oCVq.s:1440   .data.RX_ADDRESS_P3:0000000000000000 $d
+ARM GAS  /tmp/ccq8oCVq.s 			page 36
+
+
+     /tmp/ccq8oCVq.s:1446   .data.RX_ADDRESS_P4:0000000000000000 $d
+     /tmp/ccq8oCVq.s:1452   .data.RX_ADDRESS_P5:0000000000000000 $d
+     /tmp/ccq8oCVq.s:1458   .data.TX_ADDRESS:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+HAL_GPIO_WritePin
+HAL_SPI_TransmitReceive
+hspi1
+HAL_SPI_Transmit
+SystemCoreClock
+HAL_SPI_Receive
+pressure

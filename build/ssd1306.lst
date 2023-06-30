@@ -1,0 +1,3107 @@
+ARM GAS  /tmp/ccx0Bhm1.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.arch armv7-m
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"ssd1306.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	__aeabi_f2d
+  18              		.global	__aeabi_dmul
+  19              		.global	__aeabi_ddiv
+  20              		.global	__aeabi_d2f
+  21              		.section	.text.ssd1306_DegToRad,"ax",%progbits
+  22              		.align	1
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	ssd1306_DegToRad:
+  28              	.LVL0:
+  29              	.LFB78:
+  30              		.file 1 "Core/Src/ssd1306.c"
+   1:Core/Src/ssd1306.c **** #include "ssd1306.h"
+   2:Core/Src/ssd1306.c **** #include <math.h>
+   3:Core/Src/ssd1306.c **** #include <stdlib.h>
+   4:Core/Src/ssd1306.c **** #include <string.h>  // For memcpy
+   5:Core/Src/ssd1306.c **** 
+   6:Core/Src/ssd1306.c **** #if defined(SSD1306_USE_I2C)
+   7:Core/Src/ssd1306.c **** 
+   8:Core/Src/ssd1306.c **** void ssd1306_Reset(void) {
+   9:Core/Src/ssd1306.c ****     /* for I2C - do nothing */
+  10:Core/Src/ssd1306.c **** }
+  11:Core/Src/ssd1306.c **** 
+  12:Core/Src/ssd1306.c **** // Send a byte to the command register
+  13:Core/Src/ssd1306.c **** void ssd1306_WriteCommand(uint8_t byte) {
+  14:Core/Src/ssd1306.c ****     HAL_I2C_Mem_Write(&SSD1306_I2C_PORT, SSD1306_I2C_ADDR, 0x00, 1, &byte, 1, HAL_MAX_DELAY);
+  15:Core/Src/ssd1306.c **** }
+  16:Core/Src/ssd1306.c **** 
+  17:Core/Src/ssd1306.c **** // Send data
+  18:Core/Src/ssd1306.c **** void ssd1306_WriteData(uint8_t* buffer, size_t buff_size) {
+  19:Core/Src/ssd1306.c ****     HAL_I2C_Mem_Write(&SSD1306_I2C_PORT, SSD1306_I2C_ADDR, 0x40, 1, buffer, buff_size, HAL_MAX_DELA
+  20:Core/Src/ssd1306.c **** }
+  21:Core/Src/ssd1306.c **** 
+  22:Core/Src/ssd1306.c **** #elif defined(SSD1306_USE_SPI)
+  23:Core/Src/ssd1306.c **** 
+  24:Core/Src/ssd1306.c **** void ssd1306_Reset(void) {
+  25:Core/Src/ssd1306.c ****     // CS = High (not selected)
+  26:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_SET);
+  27:Core/Src/ssd1306.c **** 
+  28:Core/Src/ssd1306.c ****     // Reset the OLED
+ARM GAS  /tmp/ccx0Bhm1.s 			page 2
+
+
+  29:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_Reset_Port, SSD1306_Reset_Pin, GPIO_PIN_RESET);
+  30:Core/Src/ssd1306.c ****     HAL_Delay(10);
+  31:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_Reset_Port, SSD1306_Reset_Pin, GPIO_PIN_SET);
+  32:Core/Src/ssd1306.c ****     HAL_Delay(10);
+  33:Core/Src/ssd1306.c **** }
+  34:Core/Src/ssd1306.c **** 
+  35:Core/Src/ssd1306.c **** // Send a byte to the command register
+  36:Core/Src/ssd1306.c **** void ssd1306_WriteCommand(uint8_t byte) {
+  37:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_RESET); // select OLED
+  38:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_DC_Port, SSD1306_DC_Pin, GPIO_PIN_RESET); // command
+  39:Core/Src/ssd1306.c ****     HAL_SPI_Transmit(&SSD1306_SPI_PORT, (uint8_t *) &byte, 1, HAL_MAX_DELAY);
+  40:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_SET); // un-select OLED
+  41:Core/Src/ssd1306.c **** }
+  42:Core/Src/ssd1306.c **** 
+  43:Core/Src/ssd1306.c **** // Send data
+  44:Core/Src/ssd1306.c **** void ssd1306_WriteData(uint8_t* buffer, size_t buff_size) {
+  45:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_RESET); // select OLED
+  46:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_DC_Port, SSD1306_DC_Pin, GPIO_PIN_SET); // data
+  47:Core/Src/ssd1306.c ****     HAL_SPI_Transmit(&SSD1306_SPI_PORT, buffer, buff_size, HAL_MAX_DELAY);
+  48:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_SET); // un-select OLED
+  49:Core/Src/ssd1306.c **** }
+  50:Core/Src/ssd1306.c **** 
+  51:Core/Src/ssd1306.c **** #else
+  52:Core/Src/ssd1306.c **** #error "You should define SSD1306_USE_SPI or SSD1306_USE_I2C macro"
+  53:Core/Src/ssd1306.c **** #endif
+  54:Core/Src/ssd1306.c **** 
+  55:Core/Src/ssd1306.c **** 
+  56:Core/Src/ssd1306.c **** // Screenbuffer
+  57:Core/Src/ssd1306.c **** static uint8_t SSD1306_Buffer[SSD1306_BUFFER_SIZE];
+  58:Core/Src/ssd1306.c **** 
+  59:Core/Src/ssd1306.c **** // Screen object
+  60:Core/Src/ssd1306.c **** static SSD1306_t SSD1306;
+  61:Core/Src/ssd1306.c **** 
+  62:Core/Src/ssd1306.c **** /* Fills the Screenbuffer with values from a given buffer of a fixed length */
+  63:Core/Src/ssd1306.c **** SSD1306_Error_t ssd1306_FillBuffer(uint8_t* buf, uint32_t len) {
+  64:Core/Src/ssd1306.c ****     SSD1306_Error_t ret = SSD1306_ERR;
+  65:Core/Src/ssd1306.c ****     if (len <= SSD1306_BUFFER_SIZE) {
+  66:Core/Src/ssd1306.c ****         memcpy(SSD1306_Buffer,buf,len);
+  67:Core/Src/ssd1306.c ****         ret = SSD1306_OK;
+  68:Core/Src/ssd1306.c ****     }
+  69:Core/Src/ssd1306.c ****     return ret;
+  70:Core/Src/ssd1306.c **** }
+  71:Core/Src/ssd1306.c **** 
+  72:Core/Src/ssd1306.c **** // Initialize the oled screen
+  73:Core/Src/ssd1306.c **** void ssd1306_Init(void) {
+  74:Core/Src/ssd1306.c ****     // Reset OLED
+  75:Core/Src/ssd1306.c ****     ssd1306_Reset();
+  76:Core/Src/ssd1306.c **** 
+  77:Core/Src/ssd1306.c ****     // Wait for the screen to boot
+  78:Core/Src/ssd1306.c ****     HAL_Delay(100);
+  79:Core/Src/ssd1306.c **** 
+  80:Core/Src/ssd1306.c ****     // Init OLED
+  81:Core/Src/ssd1306.c ****     ssd1306_SetDisplayOn(0); //display off
+  82:Core/Src/ssd1306.c **** 
+  83:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x20); //Set Memory Addressing Mode
+  84:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x00); // 00b,Horizontal Addressing Mode; 01b,Vertical Addressing Mode;
+  85:Core/Src/ssd1306.c ****                                 // 10b,Page Addressing Mode (RESET); 11b,Invalid
+ARM GAS  /tmp/ccx0Bhm1.s 			page 3
+
+
+  86:Core/Src/ssd1306.c **** 
+  87:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xB0); //Set Page Start Address for Page Addressing Mode,0-7
+  88:Core/Src/ssd1306.c **** 
+  89:Core/Src/ssd1306.c **** #ifdef SSD1306_MIRROR_VERT
+  90:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xC0); // Mirror vertically
+  91:Core/Src/ssd1306.c **** #else
+  92:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xC8); //Set COM Output Scan Direction
+  93:Core/Src/ssd1306.c **** #endif
+  94:Core/Src/ssd1306.c **** 
+  95:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x00); //---set low column address
+  96:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x10); //---set high column address
+  97:Core/Src/ssd1306.c **** 
+  98:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x40); //--set start line address - CHECK
+  99:Core/Src/ssd1306.c **** 
+ 100:Core/Src/ssd1306.c ****     ssd1306_SetContrast(0xFF);
+ 101:Core/Src/ssd1306.c **** 
+ 102:Core/Src/ssd1306.c **** #ifdef SSD1306_MIRROR_HORIZ
+ 103:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xA0); // Mirror horizontally
+ 104:Core/Src/ssd1306.c **** #else
+ 105:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xA1); //--set segment re-map 0 to 127 - CHECK
+ 106:Core/Src/ssd1306.c **** #endif
+ 107:Core/Src/ssd1306.c **** 
+ 108:Core/Src/ssd1306.c **** #ifdef SSD1306_INVERSE_COLOR
+ 109:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xA7); //--set inverse color
+ 110:Core/Src/ssd1306.c **** #else
+ 111:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xA6); //--set normal color
+ 112:Core/Src/ssd1306.c **** #endif
+ 113:Core/Src/ssd1306.c **** 
+ 114:Core/Src/ssd1306.c **** // Set multiplex ratio.
+ 115:Core/Src/ssd1306.c **** #if (SSD1306_HEIGHT == 128)
+ 116:Core/Src/ssd1306.c ****     // Found in the Luma Python lib for SH1106.
+ 117:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xFF);
+ 118:Core/Src/ssd1306.c **** #else
+ 119:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xA8); //--set multiplex ratio(1 to 64) - CHECK
+ 120:Core/Src/ssd1306.c **** #endif
+ 121:Core/Src/ssd1306.c **** 
+ 122:Core/Src/ssd1306.c **** #if (SSD1306_HEIGHT == 32)
+ 123:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x1F); //
+ 124:Core/Src/ssd1306.c **** #elif (SSD1306_HEIGHT == 64)
+ 125:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x3F); //
+ 126:Core/Src/ssd1306.c **** #elif (SSD1306_HEIGHT == 128)
+ 127:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x3F); // Seems to work for 128px high displays too.
+ 128:Core/Src/ssd1306.c **** #else
+ 129:Core/Src/ssd1306.c **** #error "Only 32, 64, or 128 lines of height are supported!"
+ 130:Core/Src/ssd1306.c **** #endif
+ 131:Core/Src/ssd1306.c **** 
+ 132:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xA4); //0xa4,Output follows RAM content;0xa5,Output ignores RAM content
+ 133:Core/Src/ssd1306.c **** 
+ 134:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xD3); //-set display offset - CHECK
+ 135:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x00); //-not offset
+ 136:Core/Src/ssd1306.c **** 
+ 137:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xD5); //--set display clock divide ratio/oscillator frequency
+ 138:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xF0); //--set divide ratio
+ 139:Core/Src/ssd1306.c **** 
+ 140:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xD9); //--set pre-charge period
+ 141:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x22); //
+ 142:Core/Src/ssd1306.c **** 
+ARM GAS  /tmp/ccx0Bhm1.s 			page 4
+
+
+ 143:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xDA); //--set com pins hardware configuration - CHECK
+ 144:Core/Src/ssd1306.c **** #if (SSD1306_HEIGHT == 32)
+ 145:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x02);
+ 146:Core/Src/ssd1306.c **** #elif (SSD1306_HEIGHT == 64)
+ 147:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x12);
+ 148:Core/Src/ssd1306.c **** #elif (SSD1306_HEIGHT == 128)
+ 149:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x12);
+ 150:Core/Src/ssd1306.c **** #else
+ 151:Core/Src/ssd1306.c **** #error "Only 32, 64, or 128 lines of height are supported!"
+ 152:Core/Src/ssd1306.c **** #endif
+ 153:Core/Src/ssd1306.c **** 
+ 154:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xDB); //--set vcomh
+ 155:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x20); //0x20,0.77xVcc
+ 156:Core/Src/ssd1306.c **** 
+ 157:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x8D); //--set DC-DC enable
+ 158:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x14); //
+ 159:Core/Src/ssd1306.c ****     ssd1306_SetDisplayOn(1); //--turn on SSD1306 panel
+ 160:Core/Src/ssd1306.c **** 
+ 161:Core/Src/ssd1306.c ****     // Clear screen
+ 162:Core/Src/ssd1306.c ****     ssd1306_Fill(Black);
+ 163:Core/Src/ssd1306.c ****     
+ 164:Core/Src/ssd1306.c ****     // Flush buffer to screen
+ 165:Core/Src/ssd1306.c ****     ssd1306_UpdateScreen();
+ 166:Core/Src/ssd1306.c ****     
+ 167:Core/Src/ssd1306.c ****     // Set default values for screen object
+ 168:Core/Src/ssd1306.c ****     SSD1306.CurrentX = 0;
+ 169:Core/Src/ssd1306.c ****     SSD1306.CurrentY = 0;
+ 170:Core/Src/ssd1306.c ****     
+ 171:Core/Src/ssd1306.c ****     SSD1306.Initialized = 1;
+ 172:Core/Src/ssd1306.c **** }
+ 173:Core/Src/ssd1306.c **** 
+ 174:Core/Src/ssd1306.c **** // Fill the whole screen with the given color
+ 175:Core/Src/ssd1306.c **** void ssd1306_Fill(SSD1306_COLOR color) {
+ 176:Core/Src/ssd1306.c ****     /* Set memory */
+ 177:Core/Src/ssd1306.c ****     uint32_t i;
+ 178:Core/Src/ssd1306.c **** 
+ 179:Core/Src/ssd1306.c ****     for(i = 0; i < sizeof(SSD1306_Buffer); i++) {
+ 180:Core/Src/ssd1306.c ****         SSD1306_Buffer[i] = (color == Black) ? 0x00 : 0xFF;
+ 181:Core/Src/ssd1306.c ****     }
+ 182:Core/Src/ssd1306.c **** }
+ 183:Core/Src/ssd1306.c **** 
+ 184:Core/Src/ssd1306.c **** // Write the screenbuffer with changed to the screen
+ 185:Core/Src/ssd1306.c **** void ssd1306_UpdateScreen(void) {
+ 186:Core/Src/ssd1306.c ****     // Write data to each page of RAM. Number of pages
+ 187:Core/Src/ssd1306.c ****     // depends on the screen height:
+ 188:Core/Src/ssd1306.c ****     //
+ 189:Core/Src/ssd1306.c ****     //  * 32px   ==  4 pages
+ 190:Core/Src/ssd1306.c ****     //  * 64px   ==  8 pages
+ 191:Core/Src/ssd1306.c ****     //  * 128px  ==  16 pages
+ 192:Core/Src/ssd1306.c ****     for(uint8_t i = 0; i < SSD1306_HEIGHT/8; i++) {
+ 193:Core/Src/ssd1306.c ****         ssd1306_WriteCommand(0xB0 + i); // Set the current RAM page address.
+ 194:Core/Src/ssd1306.c ****         ssd1306_WriteCommand(0x00 + SSD1306_X_OFFSET_LOWER);
+ 195:Core/Src/ssd1306.c ****         ssd1306_WriteCommand(0x10 + SSD1306_X_OFFSET_UPPER);
+ 196:Core/Src/ssd1306.c ****         ssd1306_WriteData(&SSD1306_Buffer[SSD1306_WIDTH*i],SSD1306_WIDTH);
+ 197:Core/Src/ssd1306.c ****     }
+ 198:Core/Src/ssd1306.c **** }
+ 199:Core/Src/ssd1306.c **** 
+ARM GAS  /tmp/ccx0Bhm1.s 			page 5
+
+
+ 200:Core/Src/ssd1306.c **** //    Draw one pixel in the screenbuffer
+ 201:Core/Src/ssd1306.c **** //    X => X Coordinate
+ 202:Core/Src/ssd1306.c **** //    Y => Y Coordinate
+ 203:Core/Src/ssd1306.c **** //    color => Pixel color
+ 204:Core/Src/ssd1306.c **** void ssd1306_DrawPixel(uint8_t x, uint8_t y, SSD1306_COLOR color) {
+ 205:Core/Src/ssd1306.c ****     if(x >= SSD1306_WIDTH || y >= SSD1306_HEIGHT) {
+ 206:Core/Src/ssd1306.c ****         // Don't write outside the buffer
+ 207:Core/Src/ssd1306.c ****         return;
+ 208:Core/Src/ssd1306.c ****     }
+ 209:Core/Src/ssd1306.c ****    
+ 210:Core/Src/ssd1306.c ****     // Draw in the right color
+ 211:Core/Src/ssd1306.c ****     if(color == White) {
+ 212:Core/Src/ssd1306.c ****         SSD1306_Buffer[x + (y / 8) * SSD1306_WIDTH] |= 1 << (y % 8);
+ 213:Core/Src/ssd1306.c ****     } else { 
+ 214:Core/Src/ssd1306.c ****         SSD1306_Buffer[x + (y / 8) * SSD1306_WIDTH] &= ~(1 << (y % 8));
+ 215:Core/Src/ssd1306.c ****     }
+ 216:Core/Src/ssd1306.c **** }
+ 217:Core/Src/ssd1306.c **** 
+ 218:Core/Src/ssd1306.c **** // Draw 1 char to the screen buffer
+ 219:Core/Src/ssd1306.c **** // ch       => char om weg te schrijven
+ 220:Core/Src/ssd1306.c **** // Font     => Font waarmee we gaan schrijven
+ 221:Core/Src/ssd1306.c **** // color    => Black or White
+ 222:Core/Src/ssd1306.c **** char ssd1306_WriteChar(char ch, FontDef Font, SSD1306_COLOR color) {
+ 223:Core/Src/ssd1306.c ****     uint32_t i, b, j;
+ 224:Core/Src/ssd1306.c ****     
+ 225:Core/Src/ssd1306.c ****     // Check if character is valid
+ 226:Core/Src/ssd1306.c ****     if (ch < 32 || ch > 126)
+ 227:Core/Src/ssd1306.c ****         return 0;
+ 228:Core/Src/ssd1306.c ****     
+ 229:Core/Src/ssd1306.c ****     // Check remaining space on current line
+ 230:Core/Src/ssd1306.c ****     if (SSD1306_WIDTH < (SSD1306.CurrentX + Font.FontWidth) ||
+ 231:Core/Src/ssd1306.c ****         SSD1306_HEIGHT < (SSD1306.CurrentY + Font.FontHeight))
+ 232:Core/Src/ssd1306.c ****     {
+ 233:Core/Src/ssd1306.c ****         // Not enough space on current line
+ 234:Core/Src/ssd1306.c ****         return 0;
+ 235:Core/Src/ssd1306.c ****     }
+ 236:Core/Src/ssd1306.c ****     
+ 237:Core/Src/ssd1306.c ****     // Use the font to write
+ 238:Core/Src/ssd1306.c ****     for(i = 0; i < Font.FontHeight; i++) {
+ 239:Core/Src/ssd1306.c ****         b = Font.data[(ch - 32) * Font.FontHeight + i];
+ 240:Core/Src/ssd1306.c ****         for(j = 0; j < Font.FontWidth; j++) {
+ 241:Core/Src/ssd1306.c ****             if((b << j) & 0x8000)  {
+ 242:Core/Src/ssd1306.c ****                 ssd1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), (SSD1306_COLOR) col
+ 243:Core/Src/ssd1306.c ****             } else {
+ 244:Core/Src/ssd1306.c ****                 ssd1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), (SSD1306_COLOR)!col
+ 245:Core/Src/ssd1306.c ****             }
+ 246:Core/Src/ssd1306.c ****         }
+ 247:Core/Src/ssd1306.c ****     }
+ 248:Core/Src/ssd1306.c ****     
+ 249:Core/Src/ssd1306.c ****     // The current space is now taken
+ 250:Core/Src/ssd1306.c ****     SSD1306.CurrentX += Font.FontWidth;
+ 251:Core/Src/ssd1306.c ****     
+ 252:Core/Src/ssd1306.c ****     // Return written char for validation
+ 253:Core/Src/ssd1306.c ****     return ch;
+ 254:Core/Src/ssd1306.c **** }
+ 255:Core/Src/ssd1306.c **** 
+ 256:Core/Src/ssd1306.c **** // Write full string to screenbuffer
+ARM GAS  /tmp/ccx0Bhm1.s 			page 6
+
+
+ 257:Core/Src/ssd1306.c **** char ssd1306_WriteString(char* str, FontDef Font, SSD1306_COLOR color) {
+ 258:Core/Src/ssd1306.c ****     // Write until null-byte
+ 259:Core/Src/ssd1306.c ****     while (*str) {
+ 260:Core/Src/ssd1306.c ****         if (ssd1306_WriteChar(*str, Font, color) != *str) {
+ 261:Core/Src/ssd1306.c ****             // Char could not be written
+ 262:Core/Src/ssd1306.c ****             return *str;
+ 263:Core/Src/ssd1306.c ****         }
+ 264:Core/Src/ssd1306.c ****         
+ 265:Core/Src/ssd1306.c ****         // Next char
+ 266:Core/Src/ssd1306.c ****         str++;
+ 267:Core/Src/ssd1306.c ****     }
+ 268:Core/Src/ssd1306.c ****     
+ 269:Core/Src/ssd1306.c ****     // Everything ok
+ 270:Core/Src/ssd1306.c ****     return *str;
+ 271:Core/Src/ssd1306.c **** }
+ 272:Core/Src/ssd1306.c **** 
+ 273:Core/Src/ssd1306.c **** // Position the cursor
+ 274:Core/Src/ssd1306.c **** void ssd1306_SetCursor(uint8_t x, uint8_t y) {
+ 275:Core/Src/ssd1306.c ****     SSD1306.CurrentX = x;
+ 276:Core/Src/ssd1306.c ****     SSD1306.CurrentY = y;
+ 277:Core/Src/ssd1306.c **** }
+ 278:Core/Src/ssd1306.c **** 
+ 279:Core/Src/ssd1306.c **** // Draw line by Bresenhem's algorithm
+ 280:Core/Src/ssd1306.c **** void ssd1306_Line(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, SSD1306_COLOR color) {
+ 281:Core/Src/ssd1306.c ****   int32_t deltaX = abs(x2 - x1);
+ 282:Core/Src/ssd1306.c ****   int32_t deltaY = abs(y2 - y1);
+ 283:Core/Src/ssd1306.c ****   int32_t signX = ((x1 < x2) ? 1 : -1);
+ 284:Core/Src/ssd1306.c ****   int32_t signY = ((y1 < y2) ? 1 : -1);
+ 285:Core/Src/ssd1306.c ****   int32_t error = deltaX - deltaY;
+ 286:Core/Src/ssd1306.c ****   int32_t error2;
+ 287:Core/Src/ssd1306.c ****     
+ 288:Core/Src/ssd1306.c ****   ssd1306_DrawPixel(x2, y2, color);
+ 289:Core/Src/ssd1306.c ****     while((x1 != x2) || (y1 != y2))
+ 290:Core/Src/ssd1306.c ****     {
+ 291:Core/Src/ssd1306.c ****     ssd1306_DrawPixel(x1, y1, color);
+ 292:Core/Src/ssd1306.c ****     error2 = error * 2;
+ 293:Core/Src/ssd1306.c ****     if(error2 > -deltaY)
+ 294:Core/Src/ssd1306.c ****     {
+ 295:Core/Src/ssd1306.c ****       error -= deltaY;
+ 296:Core/Src/ssd1306.c ****       x1 += signX;
+ 297:Core/Src/ssd1306.c ****     }
+ 298:Core/Src/ssd1306.c ****     else
+ 299:Core/Src/ssd1306.c ****     {
+ 300:Core/Src/ssd1306.c ****     /*nothing to do*/
+ 301:Core/Src/ssd1306.c ****     }
+ 302:Core/Src/ssd1306.c ****         
+ 303:Core/Src/ssd1306.c ****     if(error2 < deltaX)
+ 304:Core/Src/ssd1306.c ****     {
+ 305:Core/Src/ssd1306.c ****       error += deltaX;
+ 306:Core/Src/ssd1306.c ****       y1 += signY;
+ 307:Core/Src/ssd1306.c ****     }
+ 308:Core/Src/ssd1306.c ****     else
+ 309:Core/Src/ssd1306.c ****     {
+ 310:Core/Src/ssd1306.c ****     /*nothing to do*/
+ 311:Core/Src/ssd1306.c ****     }
+ 312:Core/Src/ssd1306.c ****   }
+ 313:Core/Src/ssd1306.c ****   return;
+ARM GAS  /tmp/ccx0Bhm1.s 			page 7
+
+
+ 314:Core/Src/ssd1306.c **** }
+ 315:Core/Src/ssd1306.c **** //Draw polyline
+ 316:Core/Src/ssd1306.c **** void ssd1306_Polyline(const SSD1306_VERTEX *par_vertex, uint16_t par_size, SSD1306_COLOR color) {
+ 317:Core/Src/ssd1306.c ****   uint16_t i;
+ 318:Core/Src/ssd1306.c ****   if(par_vertex != 0){
+ 319:Core/Src/ssd1306.c ****     for(i = 1; i < par_size; i++){
+ 320:Core/Src/ssd1306.c ****       ssd1306_Line(par_vertex[i - 1].x, par_vertex[i - 1].y, par_vertex[i].x, par_vertex[i].y, colo
+ 321:Core/Src/ssd1306.c ****     }
+ 322:Core/Src/ssd1306.c ****   }
+ 323:Core/Src/ssd1306.c ****   else
+ 324:Core/Src/ssd1306.c ****   {
+ 325:Core/Src/ssd1306.c ****     /*nothing to do*/
+ 326:Core/Src/ssd1306.c ****   }
+ 327:Core/Src/ssd1306.c ****   return;
+ 328:Core/Src/ssd1306.c **** }
+ 329:Core/Src/ssd1306.c **** /*Convert Degrees to Radians*/
+ 330:Core/Src/ssd1306.c **** static float ssd1306_DegToRad(float par_deg) {
+  31              		.loc 1 330 46 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		.loc 1 330 46 is_stmt 0 view .LVU1
+  36 0000 08B5     		push	{r3, lr}
+  37              	.LCFI0:
+  38              		.cfi_def_cfa_offset 8
+  39              		.cfi_offset 3, -8
+  40              		.cfi_offset 14, -4
+ 331:Core/Src/ssd1306.c ****     return par_deg * 3.14 / 180.0;
+  41              		.loc 1 331 5 is_stmt 1 view .LVU2
+  42              		.loc 1 331 20 is_stmt 0 view .LVU3
+  43 0002 FFF7FEFF 		bl	__aeabi_f2d
+  44              	.LVL1:
+  45              		.loc 1 331 20 view .LVU4
+  46 0006 06A3     		adr	r3, .L3
+  47 0008 D3E90023 		ldrd	r2, [r3]
+  48 000c FFF7FEFF 		bl	__aeabi_dmul
+  49              	.LVL2:
+  50              		.loc 1 331 27 view .LVU5
+  51 0010 0022     		movs	r2, #0
+  52 0012 054B     		ldr	r3, .L3+8
+  53 0014 FFF7FEFF 		bl	__aeabi_ddiv
+  54              	.LVL3:
+  55 0018 FFF7FEFF 		bl	__aeabi_d2f
+  56              	.LVL4:
+ 332:Core/Src/ssd1306.c **** }
+  57              		.loc 1 332 1 view .LVU6
+  58 001c 08BD     		pop	{r3, pc}
+  59              	.L4:
+  60 001e 00BF     		.align	3
+  61              	.L3:
+  62 0020 1F85EB51 		.word	1374389535
+  63 0024 B81E0940 		.word	1074339512
+  64 0028 00806640 		.word	1080459264
+  65              		.cfi_endproc
+  66              	.LFE78:
+  68              		.section	.text.ssd1306_NormalizeTo0_360,"ax",%progbits
+  69              		.align	1
+ARM GAS  /tmp/ccx0Bhm1.s 			page 8
+
+
+  70              		.syntax unified
+  71              		.thumb
+  72              		.thumb_func
+  74              	ssd1306_NormalizeTo0_360:
+  75              	.LVL5:
+  76              	.LFB79:
+ 333:Core/Src/ssd1306.c **** /*Normalize degree to [0;360]*/
+ 334:Core/Src/ssd1306.c **** static uint16_t ssd1306_NormalizeTo0_360(uint16_t par_deg) {
+  77              		.loc 1 334 60 is_stmt 1 view -0
+  78              		.cfi_startproc
+  79              		@ args = 0, pretend = 0, frame = 0
+  80              		@ frame_needed = 0, uses_anonymous_args = 0
+  81              		@ link register save eliminated.
+ 335:Core/Src/ssd1306.c ****   uint16_t loc_angle;
+  82              		.loc 1 335 3 view .LVU8
+ 336:Core/Src/ssd1306.c ****   if(par_deg <= 360)
+  83              		.loc 1 336 3 view .LVU9
+  84              		.loc 1 336 5 is_stmt 0 view .LVU10
+  85 0000 B0F5B47F 		cmp	r0, #360
+  86 0004 00D9     		bls	.L6
+ 337:Core/Src/ssd1306.c ****   {
+ 338:Core/Src/ssd1306.c ****     loc_angle = par_deg;
+ 339:Core/Src/ssd1306.c ****   }
+ 340:Core/Src/ssd1306.c ****   else
+ 341:Core/Src/ssd1306.c ****   {
+ 342:Core/Src/ssd1306.c ****     loc_angle = par_deg % 360;
+  87              		.loc 1 342 5 is_stmt 1 view .LVU11
+  88              	.LVL6:
+ 343:Core/Src/ssd1306.c ****     loc_angle = ((par_deg != 0)?par_deg:360);
+  89              		.loc 1 343 5 view .LVU12
+  90              		.loc 1 343 15 is_stmt 0 view .LVU13
+  91 0006 00B1     		cbz	r0, .L8
+  92              	.LVL7:
+  93              	.L6:
+ 344:Core/Src/ssd1306.c ****   }
+ 345:Core/Src/ssd1306.c ****   return loc_angle;
+  94              		.loc 1 345 3 is_stmt 1 view .LVU14
+ 346:Core/Src/ssd1306.c **** }
+  95              		.loc 1 346 1 is_stmt 0 view .LVU15
+  96 0008 7047     		bx	lr
+  97              	.LVL8:
+  98              	.L8:
+ 343:Core/Src/ssd1306.c ****     loc_angle = ((par_deg != 0)?par_deg:360);
+  99              		.loc 1 343 15 view .LVU16
+ 100 000a 4FF4B470 		mov	r0, #360
+ 101              	.LVL9:
+ 343:Core/Src/ssd1306.c ****     loc_angle = ((par_deg != 0)?par_deg:360);
+ 102              		.loc 1 343 15 view .LVU17
+ 103 000e FBE7     		b	.L6
+ 104              		.cfi_endproc
+ 105              	.LFE79:
+ 107              		.section	.text.ssd1306_Reset,"ax",%progbits
+ 108              		.align	1
+ 109              		.global	ssd1306_Reset
+ 110              		.syntax unified
+ 111              		.thumb
+ 112              		.thumb_func
+ARM GAS  /tmp/ccx0Bhm1.s 			page 9
+
+
+ 114              	ssd1306_Reset:
+ 115              	.LFB65:
+  24:Core/Src/ssd1306.c ****     // CS = High (not selected)
+ 116              		.loc 1 24 26 is_stmt 1 view -0
+ 117              		.cfi_startproc
+ 118              		@ args = 0, pretend = 0, frame = 0
+ 119              		@ frame_needed = 0, uses_anonymous_args = 0
+ 120 0000 10B5     		push	{r4, lr}
+ 121              	.LCFI1:
+ 122              		.cfi_def_cfa_offset 8
+ 123              		.cfi_offset 4, -8
+ 124              		.cfi_offset 14, -4
+  26:Core/Src/ssd1306.c **** 
+ 125              		.loc 1 26 5 view .LVU19
+ 126 0002 0D4C     		ldr	r4, .L11
+ 127 0004 0122     		movs	r2, #1
+ 128 0006 4FF48071 		mov	r1, #256
+ 129 000a 2046     		mov	r0, r4
+ 130 000c FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 131              	.LVL10:
+  29:Core/Src/ssd1306.c ****     HAL_Delay(10);
+ 132              		.loc 1 29 5 view .LVU20
+ 133 0010 0022     		movs	r2, #0
+ 134 0012 4FF48051 		mov	r1, #4096
+ 135 0016 2046     		mov	r0, r4
+ 136 0018 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 137              	.LVL11:
+  30:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_Reset_Port, SSD1306_Reset_Pin, GPIO_PIN_SET);
+ 138              		.loc 1 30 5 view .LVU21
+ 139 001c 0A20     		movs	r0, #10
+ 140 001e FFF7FEFF 		bl	HAL_Delay
+ 141              	.LVL12:
+  31:Core/Src/ssd1306.c ****     HAL_Delay(10);
+ 142              		.loc 1 31 5 view .LVU22
+ 143 0022 0122     		movs	r2, #1
+ 144 0024 4FF48051 		mov	r1, #4096
+ 145 0028 2046     		mov	r0, r4
+ 146 002a FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 147              	.LVL13:
+  32:Core/Src/ssd1306.c **** }
+ 148              		.loc 1 32 5 view .LVU23
+ 149 002e 0A20     		movs	r0, #10
+ 150 0030 FFF7FEFF 		bl	HAL_Delay
+ 151              	.LVL14:
+  33:Core/Src/ssd1306.c **** 
+ 152              		.loc 1 33 1 is_stmt 0 view .LVU24
+ 153 0034 10BD     		pop	{r4, pc}
+ 154              	.L12:
+ 155 0036 00BF     		.align	2
+ 156              	.L11:
+ 157 0038 000C0140 		.word	1073810432
+ 158              		.cfi_endproc
+ 159              	.LFE65:
+ 161              		.section	.text.ssd1306_WriteCommand,"ax",%progbits
+ 162              		.align	1
+ 163              		.global	ssd1306_WriteCommand
+ 164              		.syntax unified
+ARM GAS  /tmp/ccx0Bhm1.s 			page 10
+
+
+ 165              		.thumb
+ 166              		.thumb_func
+ 168              	ssd1306_WriteCommand:
+ 169              	.LVL15:
+ 170              	.LFB66:
+  36:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_RESET); // select OLED
+ 171              		.loc 1 36 41 is_stmt 1 view -0
+ 172              		.cfi_startproc
+ 173              		@ args = 0, pretend = 0, frame = 8
+ 174              		@ frame_needed = 0, uses_anonymous_args = 0
+  36:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_RESET); // select OLED
+ 175              		.loc 1 36 41 is_stmt 0 view .LVU26
+ 176 0000 10B5     		push	{r4, lr}
+ 177              	.LCFI2:
+ 178              		.cfi_def_cfa_offset 8
+ 179              		.cfi_offset 4, -8
+ 180              		.cfi_offset 14, -4
+ 181 0002 82B0     		sub	sp, sp, #8
+ 182              	.LCFI3:
+ 183              		.cfi_def_cfa_offset 16
+ 184 0004 8DF80700 		strb	r0, [sp, #7]
+  37:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_DC_Port, SSD1306_DC_Pin, GPIO_PIN_RESET); // command
+ 185              		.loc 1 37 5 is_stmt 1 view .LVU27
+ 186 0008 0E4C     		ldr	r4, .L15
+ 187 000a 0022     		movs	r2, #0
+ 188 000c 4FF48071 		mov	r1, #256
+ 189 0010 2046     		mov	r0, r4
+ 190              	.LVL16:
+  37:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_DC_Port, SSD1306_DC_Pin, GPIO_PIN_RESET); // command
+ 191              		.loc 1 37 5 is_stmt 0 view .LVU28
+ 192 0012 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 193              	.LVL17:
+  38:Core/Src/ssd1306.c ****     HAL_SPI_Transmit(&SSD1306_SPI_PORT, (uint8_t *) &byte, 1, HAL_MAX_DELAY);
+ 194              		.loc 1 38 5 is_stmt 1 view .LVU29
+ 195 0016 0022     		movs	r2, #0
+ 196 0018 4FF40071 		mov	r1, #512
+ 197 001c 2046     		mov	r0, r4
+ 198 001e FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 199              	.LVL18:
+  39:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_SET); // un-select OLED
+ 200              		.loc 1 39 5 view .LVU30
+ 201 0022 4FF0FF33 		mov	r3, #-1
+ 202 0026 0122     		movs	r2, #1
+ 203 0028 0DF10701 		add	r1, sp, #7
+ 204 002c 0648     		ldr	r0, .L15+4
+ 205 002e FFF7FEFF 		bl	HAL_SPI_Transmit
+ 206              	.LVL19:
+  40:Core/Src/ssd1306.c **** }
+ 207              		.loc 1 40 5 view .LVU31
+ 208 0032 0122     		movs	r2, #1
+ 209 0034 4FF48071 		mov	r1, #256
+ 210 0038 2046     		mov	r0, r4
+ 211 003a FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 212              	.LVL20:
+  41:Core/Src/ssd1306.c **** 
+ 213              		.loc 1 41 1 is_stmt 0 view .LVU32
+ 214 003e 02B0     		add	sp, sp, #8
+ARM GAS  /tmp/ccx0Bhm1.s 			page 11
+
+
+ 215              	.LCFI4:
+ 216              		.cfi_def_cfa_offset 8
+ 217              		@ sp needed
+ 218 0040 10BD     		pop	{r4, pc}
+ 219              	.L16:
+ 220 0042 00BF     		.align	2
+ 221              	.L15:
+ 222 0044 000C0140 		.word	1073810432
+ 223 0048 00000000 		.word	hspi2
+ 224              		.cfi_endproc
+ 225              	.LFE66:
+ 227              		.section	.text.ssd1306_WriteData,"ax",%progbits
+ 228              		.align	1
+ 229              		.global	ssd1306_WriteData
+ 230              		.syntax unified
+ 231              		.thumb
+ 232              		.thumb_func
+ 234              	ssd1306_WriteData:
+ 235              	.LVL21:
+ 236              	.LFB67:
+  44:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_RESET); // select OLED
+ 237              		.loc 1 44 59 is_stmt 1 view -0
+ 238              		.cfi_startproc
+ 239              		@ args = 0, pretend = 0, frame = 0
+ 240              		@ frame_needed = 0, uses_anonymous_args = 0
+  44:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_RESET); // select OLED
+ 241              		.loc 1 44 59 is_stmt 0 view .LVU34
+ 242 0000 70B5     		push	{r4, r5, r6, lr}
+ 243              	.LCFI5:
+ 244              		.cfi_def_cfa_offset 16
+ 245              		.cfi_offset 4, -16
+ 246              		.cfi_offset 5, -12
+ 247              		.cfi_offset 6, -8
+ 248              		.cfi_offset 14, -4
+ 249 0002 0546     		mov	r5, r0
+ 250 0004 0E46     		mov	r6, r1
+  45:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_DC_Port, SSD1306_DC_Pin, GPIO_PIN_SET); // data
+ 251              		.loc 1 45 5 is_stmt 1 view .LVU35
+ 252 0006 0D4C     		ldr	r4, .L19
+ 253 0008 0022     		movs	r2, #0
+ 254 000a 4FF48071 		mov	r1, #256
+ 255              	.LVL22:
+  45:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_DC_Port, SSD1306_DC_Pin, GPIO_PIN_SET); // data
+ 256              		.loc 1 45 5 is_stmt 0 view .LVU36
+ 257 000e 2046     		mov	r0, r4
+ 258              	.LVL23:
+  45:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_DC_Port, SSD1306_DC_Pin, GPIO_PIN_SET); // data
+ 259              		.loc 1 45 5 view .LVU37
+ 260 0010 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 261              	.LVL24:
+  46:Core/Src/ssd1306.c ****     HAL_SPI_Transmit(&SSD1306_SPI_PORT, buffer, buff_size, HAL_MAX_DELAY);
+ 262              		.loc 1 46 5 is_stmt 1 view .LVU38
+ 263 0014 0122     		movs	r2, #1
+ 264 0016 4FF40071 		mov	r1, #512
+ 265 001a 2046     		mov	r0, r4
+ 266 001c FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 267              	.LVL25:
+ARM GAS  /tmp/ccx0Bhm1.s 			page 12
+
+
+  47:Core/Src/ssd1306.c ****     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_SET); // un-select OLED
+ 268              		.loc 1 47 5 view .LVU39
+ 269 0020 4FF0FF33 		mov	r3, #-1
+ 270 0024 B2B2     		uxth	r2, r6
+ 271 0026 2946     		mov	r1, r5
+ 272 0028 0548     		ldr	r0, .L19+4
+ 273 002a FFF7FEFF 		bl	HAL_SPI_Transmit
+ 274              	.LVL26:
+  48:Core/Src/ssd1306.c **** }
+ 275              		.loc 1 48 5 view .LVU40
+ 276 002e 0122     		movs	r2, #1
+ 277 0030 4FF48071 		mov	r1, #256
+ 278 0034 2046     		mov	r0, r4
+ 279 0036 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 280              	.LVL27:
+  49:Core/Src/ssd1306.c **** 
+ 281              		.loc 1 49 1 is_stmt 0 view .LVU41
+ 282 003a 70BD     		pop	{r4, r5, r6, pc}
+ 283              	.LVL28:
+ 284              	.L20:
+  49:Core/Src/ssd1306.c **** 
+ 285              		.loc 1 49 1 view .LVU42
+ 286              		.align	2
+ 287              	.L19:
+ 288 003c 000C0140 		.word	1073810432
+ 289 0040 00000000 		.word	hspi2
+ 290              		.cfi_endproc
+ 291              	.LFE67:
+ 293              		.section	.text.ssd1306_FillBuffer,"ax",%progbits
+ 294              		.align	1
+ 295              		.global	ssd1306_FillBuffer
+ 296              		.syntax unified
+ 297              		.thumb
+ 298              		.thumb_func
+ 300              	ssd1306_FillBuffer:
+ 301              	.LVL29:
+ 302              	.LFB68:
+  63:Core/Src/ssd1306.c ****     SSD1306_Error_t ret = SSD1306_ERR;
+ 303              		.loc 1 63 64 is_stmt 1 view -0
+ 304              		.cfi_startproc
+ 305              		@ args = 0, pretend = 0, frame = 0
+ 306              		@ frame_needed = 0, uses_anonymous_args = 0
+  64:Core/Src/ssd1306.c ****     if (len <= SSD1306_BUFFER_SIZE) {
+ 307              		.loc 1 64 5 view .LVU44
+  65:Core/Src/ssd1306.c ****         memcpy(SSD1306_Buffer,buf,len);
+ 308              		.loc 1 65 5 view .LVU45
+  65:Core/Src/ssd1306.c ****         memcpy(SSD1306_Buffer,buf,len);
+ 309              		.loc 1 65 8 is_stmt 0 view .LVU46
+ 310 0000 B1F5806F 		cmp	r1, #1024
+ 311 0004 01D9     		bls	.L28
+  64:Core/Src/ssd1306.c ****     if (len <= SSD1306_BUFFER_SIZE) {
+ 312              		.loc 1 64 21 view .LVU47
+ 313 0006 0120     		movs	r0, #1
+ 314              	.LVL30:
+  69:Core/Src/ssd1306.c **** }
+ 315              		.loc 1 69 5 is_stmt 1 view .LVU48
+  70:Core/Src/ssd1306.c **** 
+ARM GAS  /tmp/ccx0Bhm1.s 			page 13
+
+
+ 316              		.loc 1 70 1 is_stmt 0 view .LVU49
+ 317 0008 7047     		bx	lr
+ 318              	.LVL31:
+ 319              	.L28:
+  63:Core/Src/ssd1306.c ****     SSD1306_Error_t ret = SSD1306_ERR;
+ 320              		.loc 1 63 64 view .LVU50
+ 321 000a 08B5     		push	{r3, lr}
+ 322              	.LCFI6:
+ 323              		.cfi_def_cfa_offset 8
+ 324              		.cfi_offset 3, -8
+ 325              		.cfi_offset 14, -4
+  66:Core/Src/ssd1306.c ****         ret = SSD1306_OK;
+ 326              		.loc 1 66 9 is_stmt 1 view .LVU51
+ 327 000c 0A46     		mov	r2, r1
+ 328 000e 0146     		mov	r1, r0
+ 329              	.LVL32:
+  66:Core/Src/ssd1306.c ****         ret = SSD1306_OK;
+ 330              		.loc 1 66 9 is_stmt 0 view .LVU52
+ 331 0010 0248     		ldr	r0, .L29
+ 332              	.LVL33:
+  66:Core/Src/ssd1306.c ****         ret = SSD1306_OK;
+ 333              		.loc 1 66 9 view .LVU53
+ 334 0012 FFF7FEFF 		bl	memcpy
+ 335              	.LVL34:
+  67:Core/Src/ssd1306.c ****     }
+ 336              		.loc 1 67 9 is_stmt 1 view .LVU54
+  67:Core/Src/ssd1306.c ****     }
+ 337              		.loc 1 67 13 is_stmt 0 view .LVU55
+ 338 0016 0020     		movs	r0, #0
+ 339              	.LVL35:
+  69:Core/Src/ssd1306.c **** }
+ 340              		.loc 1 69 5 is_stmt 1 view .LVU56
+  70:Core/Src/ssd1306.c **** 
+ 341              		.loc 1 70 1 is_stmt 0 view .LVU57
+ 342 0018 08BD     		pop	{r3, pc}
+ 343              	.L30:
+ 344 001a 00BF     		.align	2
+ 345              	.L29:
+ 346 001c 00000000 		.word	.LANCHOR0
+ 347              		.cfi_endproc
+ 348              	.LFE68:
+ 350              		.section	.text.ssd1306_Fill,"ax",%progbits
+ 351              		.align	1
+ 352              		.global	ssd1306_Fill
+ 353              		.syntax unified
+ 354              		.thumb
+ 355              		.thumb_func
+ 357              	ssd1306_Fill:
+ 358              	.LVL36:
+ 359              	.LFB70:
+ 175:Core/Src/ssd1306.c ****     /* Set memory */
+ 360              		.loc 1 175 40 is_stmt 1 view -0
+ 361              		.cfi_startproc
+ 362              		@ args = 0, pretend = 0, frame = 0
+ 363              		@ frame_needed = 0, uses_anonymous_args = 0
+ 364              		@ link register save eliminated.
+ 177:Core/Src/ssd1306.c **** 
+ARM GAS  /tmp/ccx0Bhm1.s 			page 14
+
+
+ 365              		.loc 1 177 5 view .LVU59
+ 179:Core/Src/ssd1306.c ****         SSD1306_Buffer[i] = (color == Black) ? 0x00 : 0xFF;
+ 366              		.loc 1 179 5 view .LVU60
+ 179:Core/Src/ssd1306.c ****         SSD1306_Buffer[i] = (color == Black) ? 0x00 : 0xFF;
+ 367              		.loc 1 179 11 is_stmt 0 view .LVU61
+ 368 0000 0023     		movs	r3, #0
+ 179:Core/Src/ssd1306.c ****         SSD1306_Buffer[i] = (color == Black) ? 0x00 : 0xFF;
+ 369              		.loc 1 179 5 view .LVU62
+ 370 0002 03E0     		b	.L32
+ 371              	.LVL37:
+ 372              	.L35:
+ 180:Core/Src/ssd1306.c ****     }
+ 373              		.loc 1 180 27 view .LVU63
+ 374 0004 FF21     		movs	r1, #255
+ 375              	.L33:
+ 180:Core/Src/ssd1306.c ****     }
+ 376              		.loc 1 180 27 discriminator 4 view .LVU64
+ 377 0006 054A     		ldr	r2, .L37
+ 378 0008 D154     		strb	r1, [r2, r3]
+ 179:Core/Src/ssd1306.c ****         SSD1306_Buffer[i] = (color == Black) ? 0x00 : 0xFF;
+ 379              		.loc 1 179 44 is_stmt 1 discriminator 4 view .LVU65
+ 179:Core/Src/ssd1306.c ****         SSD1306_Buffer[i] = (color == Black) ? 0x00 : 0xFF;
+ 380              		.loc 1 179 45 is_stmt 0 discriminator 4 view .LVU66
+ 381 000a 0133     		adds	r3, r3, #1
+ 382              	.LVL38:
+ 383              	.L32:
+ 179:Core/Src/ssd1306.c ****         SSD1306_Buffer[i] = (color == Black) ? 0x00 : 0xFF;
+ 384              		.loc 1 179 16 is_stmt 1 discriminator 2 view .LVU67
+ 179:Core/Src/ssd1306.c ****         SSD1306_Buffer[i] = (color == Black) ? 0x00 : 0xFF;
+ 385              		.loc 1 179 5 is_stmt 0 discriminator 2 view .LVU68
+ 386 000c B3F5806F 		cmp	r3, #1024
+ 387 0010 03D2     		bcs	.L36
+ 180:Core/Src/ssd1306.c ****     }
+ 388              		.loc 1 180 9 is_stmt 1 view .LVU69
+ 180:Core/Src/ssd1306.c ****     }
+ 389              		.loc 1 180 27 is_stmt 0 view .LVU70
+ 390 0012 0028     		cmp	r0, #0
+ 391 0014 F6D1     		bne	.L35
+ 392 0016 0146     		mov	r1, r0
+ 393 0018 F5E7     		b	.L33
+ 394              	.L36:
+ 182:Core/Src/ssd1306.c **** 
+ 395              		.loc 1 182 1 view .LVU71
+ 396 001a 7047     		bx	lr
+ 397              	.L38:
+ 398              		.align	2
+ 399              	.L37:
+ 400 001c 00000000 		.word	.LANCHOR0
+ 401              		.cfi_endproc
+ 402              	.LFE70:
+ 404              		.section	.text.ssd1306_UpdateScreen,"ax",%progbits
+ 405              		.align	1
+ 406              		.global	ssd1306_UpdateScreen
+ 407              		.syntax unified
+ 408              		.thumb
+ 409              		.thumb_func
+ 411              	ssd1306_UpdateScreen:
+ARM GAS  /tmp/ccx0Bhm1.s 			page 15
+
+
+ 412              	.LFB71:
+ 185:Core/Src/ssd1306.c ****     // Write data to each page of RAM. Number of pages
+ 413              		.loc 1 185 33 is_stmt 1 view -0
+ 414              		.cfi_startproc
+ 415              		@ args = 0, pretend = 0, frame = 0
+ 416              		@ frame_needed = 0, uses_anonymous_args = 0
+ 417 0000 10B5     		push	{r4, lr}
+ 418              	.LCFI7:
+ 419              		.cfi_def_cfa_offset 8
+ 420              		.cfi_offset 4, -8
+ 421              		.cfi_offset 14, -4
+ 192:Core/Src/ssd1306.c ****         ssd1306_WriteCommand(0xB0 + i); // Set the current RAM page address.
+ 422              		.loc 1 192 5 view .LVU73
+ 423              	.LBB2:
+ 192:Core/Src/ssd1306.c ****         ssd1306_WriteCommand(0xB0 + i); // Set the current RAM page address.
+ 424              		.loc 1 192 9 view .LVU74
+ 425              	.LVL39:
+ 192:Core/Src/ssd1306.c ****         ssd1306_WriteCommand(0xB0 + i); // Set the current RAM page address.
+ 426              		.loc 1 192 17 is_stmt 0 view .LVU75
+ 427 0002 0024     		movs	r4, #0
+ 192:Core/Src/ssd1306.c ****         ssd1306_WriteCommand(0xB0 + i); // Set the current RAM page address.
+ 428              		.loc 1 192 5 view .LVU76
+ 429 0004 12E0     		b	.L40
+ 430              	.LVL40:
+ 431              	.L41:
+ 193:Core/Src/ssd1306.c ****         ssd1306_WriteCommand(0x00 + SSD1306_X_OFFSET_LOWER);
+ 432              		.loc 1 193 9 is_stmt 1 discriminator 3 view .LVU77
+ 433 0006 A4F15000 		sub	r0, r4, #80
+ 434 000a C0B2     		uxtb	r0, r0
+ 435 000c FFF7FEFF 		bl	ssd1306_WriteCommand
+ 436              	.LVL41:
+ 194:Core/Src/ssd1306.c ****         ssd1306_WriteCommand(0x10 + SSD1306_X_OFFSET_UPPER);
+ 437              		.loc 1 194 9 discriminator 3 view .LVU78
+ 438 0010 0020     		movs	r0, #0
+ 439 0012 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 440              	.LVL42:
+ 195:Core/Src/ssd1306.c ****         ssd1306_WriteData(&SSD1306_Buffer[SSD1306_WIDTH*i],SSD1306_WIDTH);
+ 441              		.loc 1 195 9 discriminator 3 view .LVU79
+ 442 0016 1020     		movs	r0, #16
+ 443 0018 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 444              	.LVL43:
+ 196:Core/Src/ssd1306.c ****     }
+ 445              		.loc 1 196 9 discriminator 3 view .LVU80
+ 446 001c 8021     		movs	r1, #128
+ 447 001e 0548     		ldr	r0, .L43
+ 448 0020 00EBC410 		add	r0, r0, r4, lsl #7
+ 449 0024 FFF7FEFF 		bl	ssd1306_WriteData
+ 450              	.LVL44:
+ 192:Core/Src/ssd1306.c ****         ssd1306_WriteCommand(0xB0 + i); // Set the current RAM page address.
+ 451              		.loc 1 192 46 discriminator 3 view .LVU81
+ 192:Core/Src/ssd1306.c ****         ssd1306_WriteCommand(0xB0 + i); // Set the current RAM page address.
+ 452              		.loc 1 192 47 is_stmt 0 discriminator 3 view .LVU82
+ 453 0028 0134     		adds	r4, r4, #1
+ 454              	.LVL45:
+ 192:Core/Src/ssd1306.c ****         ssd1306_WriteCommand(0xB0 + i); // Set the current RAM page address.
+ 455              		.loc 1 192 47 discriminator 3 view .LVU83
+ 456 002a E4B2     		uxtb	r4, r4
+ARM GAS  /tmp/ccx0Bhm1.s 			page 16
+
+
+ 457              	.LVL46:
+ 458              	.L40:
+ 192:Core/Src/ssd1306.c ****         ssd1306_WriteCommand(0xB0 + i); // Set the current RAM page address.
+ 459              		.loc 1 192 24 is_stmt 1 discriminator 1 view .LVU84
+ 192:Core/Src/ssd1306.c ****         ssd1306_WriteCommand(0xB0 + i); // Set the current RAM page address.
+ 460              		.loc 1 192 5 is_stmt 0 discriminator 1 view .LVU85
+ 461 002c 072C     		cmp	r4, #7
+ 462 002e EAD9     		bls	.L41
+ 463              	.LBE2:
+ 198:Core/Src/ssd1306.c **** 
+ 464              		.loc 1 198 1 view .LVU86
+ 465 0030 10BD     		pop	{r4, pc}
+ 466              	.LVL47:
+ 467              	.L44:
+ 198:Core/Src/ssd1306.c **** 
+ 468              		.loc 1 198 1 view .LVU87
+ 469 0032 00BF     		.align	2
+ 470              	.L43:
+ 471 0034 00000000 		.word	.LANCHOR0
+ 472              		.cfi_endproc
+ 473              	.LFE71:
+ 475              		.section	.text.ssd1306_DrawPixel,"ax",%progbits
+ 476              		.align	1
+ 477              		.global	ssd1306_DrawPixel
+ 478              		.syntax unified
+ 479              		.thumb
+ 480              		.thumb_func
+ 482              	ssd1306_DrawPixel:
+ 483              	.LVL48:
+ 484              	.LFB72:
+ 204:Core/Src/ssd1306.c ****     if(x >= SSD1306_WIDTH || y >= SSD1306_HEIGHT) {
+ 485              		.loc 1 204 67 is_stmt 1 view -0
+ 486              		.cfi_startproc
+ 487              		@ args = 0, pretend = 0, frame = 0
+ 488              		@ frame_needed = 0, uses_anonymous_args = 0
+ 489              		@ link register save eliminated.
+ 205:Core/Src/ssd1306.c ****         // Don't write outside the buffer
+ 490              		.loc 1 205 5 view .LVU89
+ 205:Core/Src/ssd1306.c ****         // Don't write outside the buffer
+ 491              		.loc 1 205 7 is_stmt 0 view .LVU90
+ 492 0000 10F0800F 		tst	r0, #128
+ 493 0004 0FD1     		bne	.L45
+ 205:Core/Src/ssd1306.c ****         // Don't write outside the buffer
+ 494              		.loc 1 205 27 discriminator 1 view .LVU91
+ 495 0006 3F29     		cmp	r1, #63
+ 496 0008 0DD8     		bhi	.L45
+ 211:Core/Src/ssd1306.c ****         SSD1306_Buffer[x + (y / 8) * SSD1306_WIDTH] |= 1 << (y % 8);
+ 497              		.loc 1 211 5 is_stmt 1 view .LVU92
+ 211:Core/Src/ssd1306.c ****         SSD1306_Buffer[x + (y / 8) * SSD1306_WIDTH] |= 1 << (y % 8);
+ 498              		.loc 1 211 7 is_stmt 0 view .LVU93
+ 499 000a 012A     		cmp	r2, #1
+ 500 000c 0CD0     		beq	.L48
+ 214:Core/Src/ssd1306.c ****     }
+ 501              		.loc 1 214 9 is_stmt 1 view .LVU94
+ 214:Core/Src/ssd1306.c ****     }
+ 502              		.loc 1 214 53 is_stmt 0 view .LVU95
+ 503 000e CB08     		lsrs	r3, r1, #3
+ARM GAS  /tmp/ccx0Bhm1.s 			page 17
+
+
+ 504 0010 00EBC310 		add	r0, r0, r3, lsl #7
+ 505              	.LVL49:
+ 214:Core/Src/ssd1306.c ****     }
+ 506              		.loc 1 214 66 view .LVU96
+ 507 0014 01F00701 		and	r1, r1, #7
+ 508              	.LVL50:
+ 214:Core/Src/ssd1306.c ****     }
+ 509              		.loc 1 214 60 view .LVU97
+ 510 0018 0123     		movs	r3, #1
+ 511 001a 8B40     		lsls	r3, r3, r1
+ 214:Core/Src/ssd1306.c ****     }
+ 512              		.loc 1 214 53 view .LVU98
+ 513 001c 084A     		ldr	r2, .L49
+ 514              	.LVL51:
+ 214:Core/Src/ssd1306.c ****     }
+ 515              		.loc 1 214 53 view .LVU99
+ 516 001e 115C     		ldrb	r1, [r2, r0]	@ zero_extendqisi2
+ 517 0020 21EA0301 		bic	r1, r1, r3
+ 518 0024 1154     		strb	r1, [r2, r0]
+ 519              	.L45:
+ 216:Core/Src/ssd1306.c **** 
+ 520              		.loc 1 216 1 view .LVU100
+ 521 0026 7047     		bx	lr
+ 522              	.LVL52:
+ 523              	.L48:
+ 212:Core/Src/ssd1306.c ****     } else { 
+ 524              		.loc 1 212 9 is_stmt 1 view .LVU101
+ 212:Core/Src/ssd1306.c ****     } else { 
+ 525              		.loc 1 212 53 is_stmt 0 view .LVU102
+ 526 0028 CB08     		lsrs	r3, r1, #3
+ 527 002a 00EBC310 		add	r0, r0, r3, lsl #7
+ 528              	.LVL53:
+ 212:Core/Src/ssd1306.c ****     } else { 
+ 529              		.loc 1 212 64 view .LVU103
+ 530 002e 01F00701 		and	r1, r1, #7
+ 531              	.LVL54:
+ 212:Core/Src/ssd1306.c ****     } else { 
+ 532              		.loc 1 212 58 view .LVU104
+ 533 0032 0123     		movs	r3, #1
+ 534 0034 8B40     		lsls	r3, r3, r1
+ 212:Core/Src/ssd1306.c ****     } else { 
+ 535              		.loc 1 212 53 view .LVU105
+ 536 0036 024A     		ldr	r2, .L49
+ 537              	.LVL55:
+ 212:Core/Src/ssd1306.c ****     } else { 
+ 538              		.loc 1 212 53 view .LVU106
+ 539 0038 115C     		ldrb	r1, [r2, r0]	@ zero_extendqisi2
+ 540 003a 1943     		orrs	r1, r1, r3
+ 541 003c 1154     		strb	r1, [r2, r0]
+ 542 003e 7047     		bx	lr
+ 543              	.L50:
+ 544              		.align	2
+ 545              	.L49:
+ 546 0040 00000000 		.word	.LANCHOR0
+ 547              		.cfi_endproc
+ 548              	.LFE72:
+ 550              		.section	.text.ssd1306_WriteChar,"ax",%progbits
+ARM GAS  /tmp/ccx0Bhm1.s 			page 18
+
+
+ 551              		.align	1
+ 552              		.global	ssd1306_WriteChar
+ 553              		.syntax unified
+ 554              		.thumb
+ 555              		.thumb_func
+ 557              	ssd1306_WriteChar:
+ 558              	.LVL56:
+ 559              	.LFB73:
+ 222:Core/Src/ssd1306.c ****     uint32_t i, b, j;
+ 560              		.loc 1 222 68 is_stmt 1 view -0
+ 561              		.cfi_startproc
+ 562              		@ args = 0, pretend = 0, frame = 8
+ 563              		@ frame_needed = 0, uses_anonymous_args = 0
+ 222:Core/Src/ssd1306.c ****     uint32_t i, b, j;
+ 564              		.loc 1 222 68 is_stmt 0 view .LVU108
+ 565 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, r10, lr}
+ 566              	.LCFI8:
+ 567              		.cfi_def_cfa_offset 32
+ 568              		.cfi_offset 4, -32
+ 569              		.cfi_offset 5, -28
+ 570              		.cfi_offset 6, -24
+ 571              		.cfi_offset 7, -20
+ 572              		.cfi_offset 8, -16
+ 573              		.cfi_offset 9, -12
+ 574              		.cfi_offset 10, -8
+ 575              		.cfi_offset 14, -4
+ 576 0004 82B0     		sub	sp, sp, #8
+ 577              	.LCFI9:
+ 578              		.cfi_def_cfa_offset 40
+ 579 0006 8146     		mov	r9, r0
+ 580 0008 02A8     		add	r0, sp, #8
+ 581              	.LVL57:
+ 222:Core/Src/ssd1306.c ****     uint32_t i, b, j;
+ 582              		.loc 1 222 68 view .LVU109
+ 583 000a 00E90600 		stmdb	r0, {r1, r2}
+ 584 000e 1F46     		mov	r7, r3
+ 223:Core/Src/ssd1306.c ****     
+ 585              		.loc 1 223 5 is_stmt 1 view .LVU110
+ 226:Core/Src/ssd1306.c ****         return 0;
+ 586              		.loc 1 226 5 view .LVU111
+ 226:Core/Src/ssd1306.c ****         return 0;
+ 587              		.loc 1 226 17 is_stmt 0 view .LVU112
+ 588 0010 A9F12003 		sub	r3, r9, #32
+ 589              	.LVL58:
+ 226:Core/Src/ssd1306.c ****         return 0;
+ 590              		.loc 1 226 17 view .LVU113
+ 591 0014 DBB2     		uxtb	r3, r3
+ 226:Core/Src/ssd1306.c ****         return 0;
+ 592              		.loc 1 226 8 view .LVU114
+ 593 0016 5E2B     		cmp	r3, #94
+ 594 0018 40D8     		bhi	.L59
+ 230:Core/Src/ssd1306.c ****         SSD1306_HEIGHT < (SSD1306.CurrentY + Font.FontHeight))
+ 595              		.loc 1 230 5 is_stmt 1 view .LVU115
+ 230:Core/Src/ssd1306.c ****         SSD1306_HEIGHT < (SSD1306.CurrentY + Font.FontHeight))
+ 596              		.loc 1 230 33 is_stmt 0 view .LVU116
+ 597 001a 244B     		ldr	r3, .L65
+ 598 001c 1B88     		ldrh	r3, [r3]
+ARM GAS  /tmp/ccx0Bhm1.s 			page 19
+
+
+ 230:Core/Src/ssd1306.c ****         SSD1306_HEIGHT < (SSD1306.CurrentY + Font.FontHeight))
+ 599              		.loc 1 230 49 view .LVU117
+ 600 001e 9DF80060 		ldrb	r6, [sp]	@ zero_extendqisi2
+ 230:Core/Src/ssd1306.c ****         SSD1306_HEIGHT < (SSD1306.CurrentY + Font.FontHeight))
+ 601              		.loc 1 230 43 view .LVU118
+ 602 0022 3344     		add	r3, r3, r6
+ 230:Core/Src/ssd1306.c ****         SSD1306_HEIGHT < (SSD1306.CurrentY + Font.FontHeight))
+ 603              		.loc 1 230 8 view .LVU119
+ 604 0024 802B     		cmp	r3, #128
+ 605 0026 3DDC     		bgt	.L60
+ 231:Core/Src/ssd1306.c ****     {
+ 606              		.loc 1 231 34 discriminator 1 view .LVU120
+ 607 0028 204B     		ldr	r3, .L65
+ 608 002a 5B88     		ldrh	r3, [r3, #2]
+ 231:Core/Src/ssd1306.c ****     {
+ 609              		.loc 1 231 50 discriminator 1 view .LVU121
+ 610 002c 9DF801A0 		ldrb	r10, [sp, #1]	@ zero_extendqisi2
+ 231:Core/Src/ssd1306.c ****     {
+ 611              		.loc 1 231 44 discriminator 1 view .LVU122
+ 612 0030 5344     		add	r3, r3, r10
+ 230:Core/Src/ssd1306.c ****         SSD1306_HEIGHT < (SSD1306.CurrentY + Font.FontHeight))
+ 613              		.loc 1 230 61 discriminator 1 view .LVU123
+ 614 0032 402B     		cmp	r3, #64
+ 615 0034 38DC     		bgt	.L61
+ 238:Core/Src/ssd1306.c ****         b = Font.data[(ch - 32) * Font.FontHeight + i];
+ 616              		.loc 1 238 11 view .LVU124
+ 617 0036 0025     		movs	r5, #0
+ 618 0038 1FE0     		b	.L53
+ 619              	.LVL59:
+ 620              	.L55:
+ 244:Core/Src/ssd1306.c ****             }
+ 621              		.loc 1 244 17 is_stmt 1 view .LVU125
+ 244:Core/Src/ssd1306.c ****             }
+ 622              		.loc 1 244 42 is_stmt 0 view .LVU126
+ 623 003a 1C4B     		ldr	r3, .L65
+ 624 003c 1888     		ldrh	r0, [r3]
+ 244:Core/Src/ssd1306.c ****             }
+ 625              		.loc 1 244 65 view .LVU127
+ 626 003e 5988     		ldrh	r1, [r3, #2]
+ 244:Core/Src/ssd1306.c ****             }
+ 627              		.loc 1 244 17 view .LVU128
+ 628 0040 2944     		add	r1, r1, r5
+ 629 0042 2044     		add	r0, r0, r4
+ 630 0044 B7FA87F2 		clz	r2, r7
+ 631 0048 5209     		lsrs	r2, r2, #5
+ 632 004a C9B2     		uxtb	r1, r1
+ 633 004c C0B2     		uxtb	r0, r0
+ 634 004e FFF7FEFF 		bl	ssd1306_DrawPixel
+ 635              	.LVL60:
+ 636              	.L56:
+ 240:Core/Src/ssd1306.c ****             if((b << j) & 0x8000)  {
+ 637              		.loc 1 240 40 is_stmt 1 discriminator 2 view .LVU129
+ 240:Core/Src/ssd1306.c ****             if((b << j) & 0x8000)  {
+ 638              		.loc 1 240 41 is_stmt 0 discriminator 2 view .LVU130
+ 639 0052 0134     		adds	r4, r4, #1
+ 640              	.LVL61:
+ 641              	.L54:
+ARM GAS  /tmp/ccx0Bhm1.s 			page 20
+
+
+ 240:Core/Src/ssd1306.c ****             if((b << j) & 0x8000)  {
+ 642              		.loc 1 240 20 is_stmt 1 discriminator 1 view .LVU131
+ 240:Core/Src/ssd1306.c ****             if((b << j) & 0x8000)  {
+ 643              		.loc 1 240 9 is_stmt 0 discriminator 1 view .LVU132
+ 644 0054 A642     		cmp	r6, r4
+ 645 0056 0FD9     		bls	.L63
+ 241:Core/Src/ssd1306.c ****                 ssd1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), (SSD1306_COLOR) col
+ 646              		.loc 1 241 13 is_stmt 1 view .LVU133
+ 241:Core/Src/ssd1306.c ****                 ssd1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), (SSD1306_COLOR) col
+ 647              		.loc 1 241 19 is_stmt 0 view .LVU134
+ 648 0058 08FA04F3 		lsl	r3, r8, r4
+ 241:Core/Src/ssd1306.c ****                 ssd1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), (SSD1306_COLOR) col
+ 649              		.loc 1 241 15 view .LVU135
+ 650 005c 13F4004F 		tst	r3, #32768
+ 651 0060 EBD0     		beq	.L55
+ 242:Core/Src/ssd1306.c ****             } else {
+ 652              		.loc 1 242 17 is_stmt 1 view .LVU136
+ 242:Core/Src/ssd1306.c ****             } else {
+ 653              		.loc 1 242 42 is_stmt 0 view .LVU137
+ 654 0062 124B     		ldr	r3, .L65
+ 655 0064 1888     		ldrh	r0, [r3]
+ 242:Core/Src/ssd1306.c ****             } else {
+ 656              		.loc 1 242 65 view .LVU138
+ 657 0066 5988     		ldrh	r1, [r3, #2]
+ 242:Core/Src/ssd1306.c ****             } else {
+ 658              		.loc 1 242 17 view .LVU139
+ 659 0068 2944     		add	r1, r1, r5
+ 660 006a 2044     		add	r0, r0, r4
+ 661 006c 3A46     		mov	r2, r7
+ 662 006e C9B2     		uxtb	r1, r1
+ 663 0070 C0B2     		uxtb	r0, r0
+ 664 0072 FFF7FEFF 		bl	ssd1306_DrawPixel
+ 665              	.LVL62:
+ 666 0076 ECE7     		b	.L56
+ 667              	.L63:
+ 238:Core/Src/ssd1306.c ****         b = Font.data[(ch - 32) * Font.FontHeight + i];
+ 668              		.loc 1 238 37 is_stmt 1 discriminator 2 view .LVU140
+ 238:Core/Src/ssd1306.c ****         b = Font.data[(ch - 32) * Font.FontHeight + i];
+ 669              		.loc 1 238 38 is_stmt 0 discriminator 2 view .LVU141
+ 670 0078 0135     		adds	r5, r5, #1
+ 671              	.LVL63:
+ 672              	.L53:
+ 238:Core/Src/ssd1306.c ****         b = Font.data[(ch - 32) * Font.FontHeight + i];
+ 673              		.loc 1 238 16 is_stmt 1 discriminator 1 view .LVU142
+ 238:Core/Src/ssd1306.c ****         b = Font.data[(ch - 32) * Font.FontHeight + i];
+ 674              		.loc 1 238 5 is_stmt 0 discriminator 1 view .LVU143
+ 675 007a AA45     		cmp	r10, r5
+ 676 007c 08D9     		bls	.L64
+ 239:Core/Src/ssd1306.c ****         for(j = 0; j < Font.FontWidth; j++) {
+ 677              		.loc 1 239 9 is_stmt 1 view .LVU144
+ 239:Core/Src/ssd1306.c ****         for(j = 0; j < Font.FontWidth; j++) {
+ 678              		.loc 1 239 27 is_stmt 0 view .LVU145
+ 679 007e A9F12003 		sub	r3, r9, #32
+ 239:Core/Src/ssd1306.c ****         for(j = 0; j < Font.FontWidth; j++) {
+ 680              		.loc 1 239 51 view .LVU146
+ 681 0082 03FB0A53 		mla	r3, r3, r10, r5
+ 239:Core/Src/ssd1306.c ****         for(j = 0; j < Font.FontWidth; j++) {
+ARM GAS  /tmp/ccx0Bhm1.s 			page 21
+
+
+ 682              		.loc 1 239 22 view .LVU147
+ 683 0086 019A     		ldr	r2, [sp, #4]
+ 684 0088 32F81380 		ldrh	r8, [r2, r3, lsl #1]
+ 685              	.LVL64:
+ 240:Core/Src/ssd1306.c ****             if((b << j) & 0x8000)  {
+ 686              		.loc 1 240 9 is_stmt 1 view .LVU148
+ 240:Core/Src/ssd1306.c ****             if((b << j) & 0x8000)  {
+ 687              		.loc 1 240 15 is_stmt 0 view .LVU149
+ 688 008c 0024     		movs	r4, #0
+ 240:Core/Src/ssd1306.c ****             if((b << j) & 0x8000)  {
+ 689              		.loc 1 240 9 view .LVU150
+ 690 008e E1E7     		b	.L54
+ 691              	.LVL65:
+ 692              	.L64:
+ 250:Core/Src/ssd1306.c ****     
+ 693              		.loc 1 250 5 is_stmt 1 view .LVU151
+ 250:Core/Src/ssd1306.c ****     
+ 694              		.loc 1 250 22 is_stmt 0 view .LVU152
+ 695 0090 064B     		ldr	r3, .L65
+ 696 0092 1A88     		ldrh	r2, [r3]
+ 697 0094 1644     		add	r6, r6, r2
+ 698 0096 1E80     		strh	r6, [r3]	@ movhi
+ 253:Core/Src/ssd1306.c **** }
+ 699              		.loc 1 253 5 is_stmt 1 view .LVU153
+ 253:Core/Src/ssd1306.c **** }
+ 700              		.loc 1 253 12 is_stmt 0 view .LVU154
+ 701 0098 4846     		mov	r0, r9
+ 702 009a 00E0     		b	.L52
+ 703              	.LVL66:
+ 704              	.L59:
+ 227:Core/Src/ssd1306.c ****     
+ 705              		.loc 1 227 16 view .LVU155
+ 706 009c 0020     		movs	r0, #0
+ 707              	.L52:
+ 254:Core/Src/ssd1306.c **** 
+ 708              		.loc 1 254 1 view .LVU156
+ 709 009e 02B0     		add	sp, sp, #8
+ 710              	.LCFI10:
+ 711              		.cfi_remember_state
+ 712              		.cfi_def_cfa_offset 32
+ 713              		@ sp needed
+ 714 00a0 BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+ 715              	.L60:
+ 716              	.LCFI11:
+ 717              		.cfi_restore_state
+ 234:Core/Src/ssd1306.c ****     }
+ 718              		.loc 1 234 16 view .LVU157
+ 719 00a4 0020     		movs	r0, #0
+ 720 00a6 FAE7     		b	.L52
+ 721              	.L61:
+ 722 00a8 0020     		movs	r0, #0
+ 723 00aa F8E7     		b	.L52
+ 724              	.L66:
+ 725              		.align	2
+ 726              	.L65:
+ 727 00ac 00000000 		.word	.LANCHOR1
+ 728              		.cfi_endproc
+ARM GAS  /tmp/ccx0Bhm1.s 			page 22
+
+
+ 729              	.LFE73:
+ 731              		.section	.text.ssd1306_WriteString,"ax",%progbits
+ 732              		.align	1
+ 733              		.global	ssd1306_WriteString
+ 734              		.syntax unified
+ 735              		.thumb
+ 736              		.thumb_func
+ 738              	ssd1306_WriteString:
+ 739              	.LVL67:
+ 740              	.LFB74:
+ 257:Core/Src/ssd1306.c ****     // Write until null-byte
+ 741              		.loc 1 257 72 is_stmt 1 view -0
+ 742              		.cfi_startproc
+ 743              		@ args = 0, pretend = 0, frame = 8
+ 744              		@ frame_needed = 0, uses_anonymous_args = 0
+ 257:Core/Src/ssd1306.c ****     // Write until null-byte
+ 745              		.loc 1 257 72 is_stmt 0 view .LVU159
+ 746 0000 30B5     		push	{r4, r5, lr}
+ 747              	.LCFI12:
+ 748              		.cfi_def_cfa_offset 12
+ 749              		.cfi_offset 4, -12
+ 750              		.cfi_offset 5, -8
+ 751              		.cfi_offset 14, -4
+ 752 0002 83B0     		sub	sp, sp, #12
+ 753              	.LCFI13:
+ 754              		.cfi_def_cfa_offset 24
+ 755 0004 0446     		mov	r4, r0
+ 756 0006 02A8     		add	r0, sp, #8
+ 757              	.LVL68:
+ 257:Core/Src/ssd1306.c ****     // Write until null-byte
+ 758              		.loc 1 257 72 view .LVU160
+ 759 0008 00E90600 		stmdb	r0, {r1, r2}
+ 760 000c 1D46     		mov	r5, r3
+ 259:Core/Src/ssd1306.c ****         if (ssd1306_WriteChar(*str, Font, color) != *str) {
+ 761              		.loc 1 259 5 is_stmt 1 view .LVU161
+ 259:Core/Src/ssd1306.c ****         if (ssd1306_WriteChar(*str, Font, color) != *str) {
+ 762              		.loc 1 259 11 is_stmt 0 view .LVU162
+ 763 000e 00E0     		b	.L68
+ 764              	.LVL69:
+ 765              	.L72:
+ 266:Core/Src/ssd1306.c ****     }
+ 766              		.loc 1 266 9 is_stmt 1 view .LVU163
+ 266:Core/Src/ssd1306.c ****     }
+ 767              		.loc 1 266 12 is_stmt 0 view .LVU164
+ 768 0010 0134     		adds	r4, r4, #1
+ 769              	.LVL70:
+ 770              	.L68:
+ 259:Core/Src/ssd1306.c ****         if (ssd1306_WriteChar(*str, Font, color) != *str) {
+ 771              		.loc 1 259 11 is_stmt 1 view .LVU165
+ 259:Core/Src/ssd1306.c ****         if (ssd1306_WriteChar(*str, Font, color) != *str) {
+ 772              		.loc 1 259 12 is_stmt 0 view .LVU166
+ 773 0012 2078     		ldrb	r0, [r4]	@ zero_extendqisi2
+ 259:Core/Src/ssd1306.c ****         if (ssd1306_WriteChar(*str, Font, color) != *str) {
+ 774              		.loc 1 259 11 view .LVU167
+ 775 0014 48B1     		cbz	r0, .L69
+ 260:Core/Src/ssd1306.c ****             // Char could not be written
+ 776              		.loc 1 260 9 is_stmt 1 view .LVU168
+ARM GAS  /tmp/ccx0Bhm1.s 			page 23
+
+
+ 260:Core/Src/ssd1306.c ****             // Char could not be written
+ 777              		.loc 1 260 13 is_stmt 0 view .LVU169
+ 778 0016 2B46     		mov	r3, r5
+ 779 0018 02AA     		add	r2, sp, #8
+ 780 001a 12E90600 		ldmdb	r2, {r1, r2}
+ 781 001e FFF7FEFF 		bl	ssd1306_WriteChar
+ 782              	.LVL71:
+ 783 0022 0246     		mov	r2, r0
+ 260:Core/Src/ssd1306.c ****             // Char could not be written
+ 784              		.loc 1 260 53 view .LVU170
+ 785 0024 2078     		ldrb	r0, [r4]	@ zero_extendqisi2
+ 260:Core/Src/ssd1306.c ****             // Char could not be written
+ 786              		.loc 1 260 12 view .LVU171
+ 787 0026 8242     		cmp	r2, r0
+ 788 0028 F2D0     		beq	.L72
+ 789              	.L69:
+ 271:Core/Src/ssd1306.c **** 
+ 790              		.loc 1 271 1 view .LVU172
+ 791 002a 03B0     		add	sp, sp, #12
+ 792              	.LCFI14:
+ 793              		.cfi_def_cfa_offset 12
+ 794              		@ sp needed
+ 795 002c 30BD     		pop	{r4, r5, pc}
+ 271:Core/Src/ssd1306.c **** 
+ 796              		.loc 1 271 1 view .LVU173
+ 797              		.cfi_endproc
+ 798              	.LFE74:
+ 800              		.section	.text.ssd1306_SetCursor,"ax",%progbits
+ 801              		.align	1
+ 802              		.global	ssd1306_SetCursor
+ 803              		.syntax unified
+ 804              		.thumb
+ 805              		.thumb_func
+ 807              	ssd1306_SetCursor:
+ 808              	.LVL72:
+ 809              	.LFB75:
+ 274:Core/Src/ssd1306.c ****     SSD1306.CurrentX = x;
+ 810              		.loc 1 274 46 is_stmt 1 view -0
+ 811              		.cfi_startproc
+ 812              		@ args = 0, pretend = 0, frame = 0
+ 813              		@ frame_needed = 0, uses_anonymous_args = 0
+ 814              		@ link register save eliminated.
+ 275:Core/Src/ssd1306.c ****     SSD1306.CurrentY = y;
+ 815              		.loc 1 275 5 view .LVU175
+ 275:Core/Src/ssd1306.c ****     SSD1306.CurrentY = y;
+ 816              		.loc 1 275 22 is_stmt 0 view .LVU176
+ 817 0000 014B     		ldr	r3, .L74
+ 818 0002 1880     		strh	r0, [r3]	@ movhi
+ 276:Core/Src/ssd1306.c **** }
+ 819              		.loc 1 276 5 is_stmt 1 view .LVU177
+ 276:Core/Src/ssd1306.c **** }
+ 820              		.loc 1 276 22 is_stmt 0 view .LVU178
+ 821 0004 5980     		strh	r1, [r3, #2]	@ movhi
+ 277:Core/Src/ssd1306.c **** 
+ 822              		.loc 1 277 1 view .LVU179
+ 823 0006 7047     		bx	lr
+ 824              	.L75:
+ARM GAS  /tmp/ccx0Bhm1.s 			page 24
+
+
+ 825              		.align	2
+ 826              	.L74:
+ 827 0008 00000000 		.word	.LANCHOR1
+ 828              		.cfi_endproc
+ 829              	.LFE75:
+ 831              		.section	.text.ssd1306_Line,"ax",%progbits
+ 832              		.align	1
+ 833              		.global	ssd1306_Line
+ 834              		.syntax unified
+ 835              		.thumb
+ 836              		.thumb_func
+ 838              	ssd1306_Line:
+ 839              	.LVL73:
+ 840              	.LFB76:
+ 280:Core/Src/ssd1306.c ****   int32_t deltaX = abs(x2 - x1);
+ 841              		.loc 1 280 88 is_stmt 1 view -0
+ 842              		.cfi_startproc
+ 843              		@ args = 4, pretend = 0, frame = 8
+ 844              		@ frame_needed = 0, uses_anonymous_args = 0
+ 280:Core/Src/ssd1306.c ****   int32_t deltaX = abs(x2 - x1);
+ 845              		.loc 1 280 88 is_stmt 0 view .LVU181
+ 846 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 847              	.LCFI15:
+ 848              		.cfi_def_cfa_offset 36
+ 849              		.cfi_offset 4, -36
+ 850              		.cfi_offset 5, -32
+ 851              		.cfi_offset 6, -28
+ 852              		.cfi_offset 7, -24
+ 853              		.cfi_offset 8, -20
+ 854              		.cfi_offset 9, -16
+ 855              		.cfi_offset 10, -12
+ 856              		.cfi_offset 11, -8
+ 857              		.cfi_offset 14, -4
+ 858 0004 83B0     		sub	sp, sp, #12
+ 859              	.LCFI16:
+ 860              		.cfi_def_cfa_offset 48
+ 861 0006 0446     		mov	r4, r0
+ 862 0008 0E46     		mov	r6, r1
+ 863 000a 9146     		mov	r9, r2
+ 864 000c 9B46     		mov	fp, r3
+ 865 000e 9DF830A0 		ldrb	r10, [sp, #48]	@ zero_extendqisi2
+ 281:Core/Src/ssd1306.c ****   int32_t deltaY = abs(y2 - y1);
+ 866              		.loc 1 281 3 is_stmt 1 view .LVU182
+ 281:Core/Src/ssd1306.c ****   int32_t deltaY = abs(y2 - y1);
+ 867              		.loc 1 281 27 is_stmt 0 view .LVU183
+ 868 0012 A2EB0008 		sub	r8, r2, r0
+ 281:Core/Src/ssd1306.c ****   int32_t deltaY = abs(y2 - y1);
+ 869              		.loc 1 281 11 view .LVU184
+ 870 0016 B8F1000F 		cmp	r8, #0
+ 871 001a B8BF     		it	lt
+ 872 001c C8F10008 		rsblt	r8, r8, #0
+ 873              	.LVL74:
+ 282:Core/Src/ssd1306.c ****   int32_t signX = ((x1 < x2) ? 1 : -1);
+ 874              		.loc 1 282 3 is_stmt 1 view .LVU185
+ 282:Core/Src/ssd1306.c ****   int32_t signX = ((x1 < x2) ? 1 : -1);
+ 875              		.loc 1 282 27 is_stmt 0 view .LVU186
+ 876 0020 5F1A     		subs	r7, r3, r1
+ARM GAS  /tmp/ccx0Bhm1.s 			page 25
+
+
+ 282:Core/Src/ssd1306.c ****   int32_t signX = ((x1 < x2) ? 1 : -1);
+ 877              		.loc 1 282 11 view .LVU187
+ 878 0022 002F     		cmp	r7, #0
+ 879 0024 B8BF     		it	lt
+ 880 0026 7F42     		rsblt	r7, r7, #0
+ 881              	.LVL75:
+ 283:Core/Src/ssd1306.c ****   int32_t signY = ((y1 < y2) ? 1 : -1);
+ 882              		.loc 1 283 3 is_stmt 1 view .LVU188
+ 283:Core/Src/ssd1306.c ****   int32_t signY = ((y1 < y2) ? 1 : -1);
+ 883              		.loc 1 283 34 is_stmt 0 view .LVU189
+ 884 0028 8242     		cmp	r2, r0
+ 885 002a 0DD9     		bls	.L83
+ 886 002c 0123     		movs	r3, #1
+ 887              	.LVL76:
+ 283:Core/Src/ssd1306.c ****   int32_t signY = ((y1 < y2) ? 1 : -1);
+ 888              		.loc 1 283 34 view .LVU190
+ 889 002e 0093     		str	r3, [sp]
+ 890              	.L77:
+ 891              	.LVL77:
+ 284:Core/Src/ssd1306.c ****   int32_t error = deltaX - deltaY;
+ 892              		.loc 1 284 3 is_stmt 1 discriminator 4 view .LVU191
+ 284:Core/Src/ssd1306.c ****   int32_t error = deltaX - deltaY;
+ 893              		.loc 1 284 34 is_stmt 0 discriminator 4 view .LVU192
+ 894 0030 B345     		cmp	fp, r6
+ 895 0032 0DD9     		bls	.L84
+ 284:Core/Src/ssd1306.c ****   int32_t error = deltaX - deltaY;
+ 896              		.loc 1 284 34 view .LVU193
+ 897 0034 0123     		movs	r3, #1
+ 898 0036 0193     		str	r3, [sp, #4]
+ 899              	.L78:
+ 900              	.LVL78:
+ 285:Core/Src/ssd1306.c ****   int32_t error2;
+ 901              		.loc 1 285 3 is_stmt 1 discriminator 4 view .LVU194
+ 285:Core/Src/ssd1306.c ****   int32_t error2;
+ 902              		.loc 1 285 11 is_stmt 0 discriminator 4 view .LVU195
+ 903 0038 A8EB0705 		sub	r5, r8, r7
+ 904              	.LVL79:
+ 286:Core/Src/ssd1306.c ****     
+ 905              		.loc 1 286 3 is_stmt 1 discriminator 4 view .LVU196
+ 288:Core/Src/ssd1306.c ****     while((x1 != x2) || (y1 != y2))
+ 906              		.loc 1 288 3 discriminator 4 view .LVU197
+ 907 003c 5246     		mov	r2, r10
+ 908              	.LVL80:
+ 288:Core/Src/ssd1306.c ****     while((x1 != x2) || (y1 != y2))
+ 909              		.loc 1 288 3 is_stmt 0 discriminator 4 view .LVU198
+ 910 003e 5946     		mov	r1, fp
+ 911              	.LVL81:
+ 288:Core/Src/ssd1306.c ****     while((x1 != x2) || (y1 != y2))
+ 912              		.loc 1 288 3 discriminator 4 view .LVU199
+ 913 0040 4846     		mov	r0, r9
+ 914              	.LVL82:
+ 288:Core/Src/ssd1306.c ****     while((x1 != x2) || (y1 != y2))
+ 915              		.loc 1 288 3 discriminator 4 view .LVU200
+ 916 0042 FFF7FEFF 		bl	ssd1306_DrawPixel
+ 917              	.LVL83:
+ 289:Core/Src/ssd1306.c ****     {
+ 918              		.loc 1 289 5 is_stmt 1 discriminator 4 view .LVU201
+ARM GAS  /tmp/ccx0Bhm1.s 			page 26
+
+
+ 289:Core/Src/ssd1306.c ****     {
+ 919              		.loc 1 289 10 is_stmt 0 discriminator 4 view .LVU202
+ 920 0046 1BE0     		b	.L79
+ 921              	.LVL84:
+ 922              	.L83:
+ 283:Core/Src/ssd1306.c ****   int32_t signY = ((y1 < y2) ? 1 : -1);
+ 923              		.loc 1 283 34 view .LVU203
+ 924 0048 4FF0FF33 		mov	r3, #-1
+ 925              	.LVL85:
+ 283:Core/Src/ssd1306.c ****   int32_t signY = ((y1 < y2) ? 1 : -1);
+ 926              		.loc 1 283 34 view .LVU204
+ 927 004c 0093     		str	r3, [sp]
+ 928 004e EFE7     		b	.L77
+ 929              	.LVL86:
+ 930              	.L84:
+ 284:Core/Src/ssd1306.c ****   int32_t error = deltaX - deltaY;
+ 931              		.loc 1 284 34 view .LVU205
+ 932 0050 4FF0FF33 		mov	r3, #-1
+ 933 0054 0193     		str	r3, [sp, #4]
+ 934 0056 EFE7     		b	.L78
+ 935              	.LVL87:
+ 936              	.L82:
+ 291:Core/Src/ssd1306.c ****     error2 = error * 2;
+ 937              		.loc 1 291 5 is_stmt 1 view .LVU206
+ 938 0058 5246     		mov	r2, r10
+ 939 005a 3146     		mov	r1, r6
+ 940 005c 2046     		mov	r0, r4
+ 941 005e FFF7FEFF 		bl	ssd1306_DrawPixel
+ 942              	.LVL88:
+ 292:Core/Src/ssd1306.c ****     if(error2 > -deltaY)
+ 943              		.loc 1 292 5 view .LVU207
+ 292:Core/Src/ssd1306.c ****     if(error2 > -deltaY)
+ 944              		.loc 1 292 12 is_stmt 0 view .LVU208
+ 945 0062 6B00     		lsls	r3, r5, #1
+ 946              	.LVL89:
+ 293:Core/Src/ssd1306.c ****     {
+ 947              		.loc 1 293 5 is_stmt 1 view .LVU209
+ 293:Core/Src/ssd1306.c ****     {
+ 948              		.loc 1 293 17 is_stmt 0 view .LVU210
+ 949 0064 7A42     		rsbs	r2, r7, #0
+ 293:Core/Src/ssd1306.c ****     {
+ 950              		.loc 1 293 7 view .LVU211
+ 951 0066 B2EB450F 		cmp	r2, r5, lsl #1
+ 952 006a 03DA     		bge	.L80
+ 295:Core/Src/ssd1306.c ****       x1 += signX;
+ 953              		.loc 1 295 7 is_stmt 1 view .LVU212
+ 295:Core/Src/ssd1306.c ****       x1 += signX;
+ 954              		.loc 1 295 13 is_stmt 0 view .LVU213
+ 955 006c ED1B     		subs	r5, r5, r7
+ 956              	.LVL90:
+ 296:Core/Src/ssd1306.c ****     }
+ 957              		.loc 1 296 7 is_stmt 1 view .LVU214
+ 296:Core/Src/ssd1306.c ****     }
+ 958              		.loc 1 296 10 is_stmt 0 view .LVU215
+ 959 006e 009A     		ldr	r2, [sp]
+ 960 0070 1444     		add	r4, r4, r2
+ 961              	.LVL91:
+ARM GAS  /tmp/ccx0Bhm1.s 			page 27
+
+
+ 296:Core/Src/ssd1306.c ****     }
+ 962              		.loc 1 296 10 view .LVU216
+ 963 0072 E4B2     		uxtb	r4, r4
+ 964              	.LVL92:
+ 965              	.L80:
+ 301:Core/Src/ssd1306.c ****         
+ 966              		.loc 1 301 5 is_stmt 1 view .LVU217
+ 303:Core/Src/ssd1306.c ****     {
+ 967              		.loc 1 303 5 view .LVU218
+ 303:Core/Src/ssd1306.c ****     {
+ 968              		.loc 1 303 7 is_stmt 0 view .LVU219
+ 969 0074 9845     		cmp	r8, r3
+ 970 0076 03DD     		ble	.L79
+ 305:Core/Src/ssd1306.c ****       y1 += signY;
+ 971              		.loc 1 305 7 is_stmt 1 view .LVU220
+ 305:Core/Src/ssd1306.c ****       y1 += signY;
+ 972              		.loc 1 305 13 is_stmt 0 view .LVU221
+ 973 0078 4544     		add	r5, r5, r8
+ 974              	.LVL93:
+ 306:Core/Src/ssd1306.c ****     }
+ 975              		.loc 1 306 7 is_stmt 1 view .LVU222
+ 306:Core/Src/ssd1306.c ****     }
+ 976              		.loc 1 306 10 is_stmt 0 view .LVU223
+ 977 007a 019B     		ldr	r3, [sp, #4]
+ 978              	.LVL94:
+ 306:Core/Src/ssd1306.c ****     }
+ 979              		.loc 1 306 10 view .LVU224
+ 980 007c 1E44     		add	r6, r6, r3
+ 981              	.LVL95:
+ 306:Core/Src/ssd1306.c ****     }
+ 982              		.loc 1 306 10 view .LVU225
+ 983 007e F6B2     		uxtb	r6, r6
+ 984              	.LVL96:
+ 985              	.L79:
+ 311:Core/Src/ssd1306.c ****   }
+ 986              		.loc 1 311 5 is_stmt 1 view .LVU226
+ 289:Core/Src/ssd1306.c ****     {
+ 987              		.loc 1 289 10 view .LVU227
+ 988 0080 4C45     		cmp	r4, r9
+ 989 0082 E9D1     		bne	.L82
+ 289:Core/Src/ssd1306.c ****     {
+ 990              		.loc 1 289 22 is_stmt 0 discriminator 1 view .LVU228
+ 991 0084 5E45     		cmp	r6, fp
+ 992 0086 E7D1     		bne	.L82
+ 314:Core/Src/ssd1306.c **** //Draw polyline
+ 993              		.loc 1 314 1 view .LVU229
+ 994 0088 03B0     		add	sp, sp, #12
+ 995              	.LCFI17:
+ 996              		.cfi_def_cfa_offset 36
+ 997              	.LVL97:
+ 314:Core/Src/ssd1306.c **** //Draw polyline
+ 998              		.loc 1 314 1 view .LVU230
+ 999              		@ sp needed
+ 1000 008a BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 314:Core/Src/ssd1306.c **** //Draw polyline
+ 1001              		.loc 1 314 1 view .LVU231
+ 1002              		.cfi_endproc
+ARM GAS  /tmp/ccx0Bhm1.s 			page 28
+
+
+ 1003              	.LFE76:
+ 1005              		.section	.text.ssd1306_Polyline,"ax",%progbits
+ 1006              		.align	1
+ 1007              		.global	ssd1306_Polyline
+ 1008              		.syntax unified
+ 1009              		.thumb
+ 1010              		.thumb_func
+ 1012              	ssd1306_Polyline:
+ 1013              	.LVL98:
+ 1014              	.LFB77:
+ 316:Core/Src/ssd1306.c ****   uint16_t i;
+ 1015              		.loc 1 316 97 is_stmt 1 view -0
+ 1016              		.cfi_startproc
+ 1017              		@ args = 0, pretend = 0, frame = 0
+ 1018              		@ frame_needed = 0, uses_anonymous_args = 0
+ 317:Core/Src/ssd1306.c ****   if(par_vertex != 0){
+ 1019              		.loc 1 317 3 view .LVU233
+ 318:Core/Src/ssd1306.c ****     for(i = 1; i < par_size; i++){
+ 1020              		.loc 1 318 3 view .LVU234
+ 318:Core/Src/ssd1306.c ****     for(i = 1; i < par_size; i++){
+ 1021              		.loc 1 318 5 is_stmt 0 view .LVU235
+ 1022 0000 30B1     		cbz	r0, .L94
+ 316:Core/Src/ssd1306.c ****   uint16_t i;
+ 1023              		.loc 1 316 97 view .LVU236
+ 1024 0002 F0B5     		push	{r4, r5, r6, r7, lr}
+ 1025              	.LCFI18:
+ 1026              		.cfi_def_cfa_offset 20
+ 1027              		.cfi_offset 4, -20
+ 1028              		.cfi_offset 5, -16
+ 1029              		.cfi_offset 6, -12
+ 1030              		.cfi_offset 7, -8
+ 1031              		.cfi_offset 14, -4
+ 1032 0004 83B0     		sub	sp, sp, #12
+ 1033              	.LCFI19:
+ 1034              		.cfi_def_cfa_offset 32
+ 1035 0006 0E46     		mov	r6, r1
+ 1036 0008 1746     		mov	r7, r2
+ 1037 000a 0546     		mov	r5, r0
+ 319:Core/Src/ssd1306.c ****       ssd1306_Line(par_vertex[i - 1].x, par_vertex[i - 1].y, par_vertex[i].x, par_vertex[i].y, colo
+ 1038              		.loc 1 319 11 view .LVU237
+ 1039 000c 0124     		movs	r4, #1
+ 1040 000e 13E0     		b	.L87
+ 1041              	.L94:
+ 1042              	.LCFI20:
+ 1043              		.cfi_def_cfa_offset 0
+ 1044              		.cfi_restore 4
+ 1045              		.cfi_restore 5
+ 1046              		.cfi_restore 6
+ 1047              		.cfi_restore 7
+ 1048              		.cfi_restore 14
+ 319:Core/Src/ssd1306.c ****       ssd1306_Line(par_vertex[i - 1].x, par_vertex[i - 1].y, par_vertex[i].x, par_vertex[i].y, colo
+ 1049              		.loc 1 319 11 view .LVU238
+ 1050 0010 7047     		bx	lr
+ 1051              	.LVL99:
+ 1052              	.L89:
+ 1053              	.LCFI21:
+ 1054              		.cfi_def_cfa_offset 32
+ARM GAS  /tmp/ccx0Bhm1.s 			page 29
+
+
+ 1055              		.cfi_offset 4, -20
+ 1056              		.cfi_offset 5, -16
+ 1057              		.cfi_offset 6, -12
+ 1058              		.cfi_offset 7, -8
+ 1059              		.cfi_offset 14, -4
+ 320:Core/Src/ssd1306.c ****     }
+ 1060              		.loc 1 320 7 is_stmt 1 discriminator 3 view .LVU239
+ 320:Core/Src/ssd1306.c ****     }
+ 1061              		.loc 1 320 30 is_stmt 0 discriminator 3 view .LVU240
+ 1062 0012 04F10040 		add	r0, r4, #-2147483648
+ 1063 0016 0138     		subs	r0, r0, #1
+ 1064 0018 05EB400C 		add	ip, r5, r0, lsl #1
+ 320:Core/Src/ssd1306.c ****     }
+ 1065              		.loc 1 320 72 discriminator 3 view .LVU241
+ 1066 001c 05EB4403 		add	r3, r5, r4, lsl #1
+ 320:Core/Src/ssd1306.c ****     }
+ 1067              		.loc 1 320 7 discriminator 3 view .LVU242
+ 1068 0020 0097     		str	r7, [sp]
+ 1069 0022 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 1070 0024 15F81420 		ldrb	r2, [r5, r4, lsl #1]	@ zero_extendqisi2
+ 1071 0028 9CF80110 		ldrb	r1, [ip, #1]	@ zero_extendqisi2
+ 1072 002c 15F81000 		ldrb	r0, [r5, r0, lsl #1]	@ zero_extendqisi2
+ 1073 0030 FFF7FEFF 		bl	ssd1306_Line
+ 1074              	.LVL100:
+ 319:Core/Src/ssd1306.c ****       ssd1306_Line(par_vertex[i - 1].x, par_vertex[i - 1].y, par_vertex[i].x, par_vertex[i].y, colo
+ 1075              		.loc 1 319 30 is_stmt 1 discriminator 3 view .LVU243
+ 319:Core/Src/ssd1306.c ****       ssd1306_Line(par_vertex[i - 1].x, par_vertex[i - 1].y, par_vertex[i].x, par_vertex[i].y, colo
+ 1076              		.loc 1 319 31 is_stmt 0 discriminator 3 view .LVU244
+ 1077 0034 0134     		adds	r4, r4, #1
+ 1078              	.LVL101:
+ 319:Core/Src/ssd1306.c ****       ssd1306_Line(par_vertex[i - 1].x, par_vertex[i - 1].y, par_vertex[i].x, par_vertex[i].y, colo
+ 1079              		.loc 1 319 31 discriminator 3 view .LVU245
+ 1080 0036 A4B2     		uxth	r4, r4
+ 1081              	.LVL102:
+ 1082              	.L87:
+ 319:Core/Src/ssd1306.c ****       ssd1306_Line(par_vertex[i - 1].x, par_vertex[i - 1].y, par_vertex[i].x, par_vertex[i].y, colo
+ 1083              		.loc 1 319 16 is_stmt 1 discriminator 1 view .LVU246
+ 319:Core/Src/ssd1306.c ****       ssd1306_Line(par_vertex[i - 1].x, par_vertex[i - 1].y, par_vertex[i].x, par_vertex[i].y, colo
+ 1084              		.loc 1 319 5 is_stmt 0 discriminator 1 view .LVU247
+ 1085 0038 B442     		cmp	r4, r6
+ 1086 003a EAD3     		bcc	.L89
+ 328:Core/Src/ssd1306.c **** /*Convert Degrees to Radians*/
+ 1087              		.loc 1 328 1 view .LVU248
+ 1088 003c 03B0     		add	sp, sp, #12
+ 1089              	.LCFI22:
+ 1090              		.cfi_def_cfa_offset 20
+ 1091              		@ sp needed
+ 1092 003e F0BD     		pop	{r4, r5, r6, r7, pc}
+ 328:Core/Src/ssd1306.c **** /*Convert Degrees to Radians*/
+ 1093              		.loc 1 328 1 view .LVU249
+ 1094              		.cfi_endproc
+ 1095              	.LFE77:
+ 1097              		.global	__aeabi_ui2f
+ 1098              		.global	__aeabi_fdiv
+ 1099              		.global	__aeabi_fmul
+ 1100              		.global	__aeabi_i2d
+ 1101              		.global	__aeabi_d2iz
+ARM GAS  /tmp/ccx0Bhm1.s 			page 30
+
+
+ 1102              		.section	.text.ssd1306_DrawArc,"ax",%progbits
+ 1103              		.align	1
+ 1104              		.global	ssd1306_DrawArc
+ 1105              		.syntax unified
+ 1106              		.thumb
+ 1107              		.thumb_func
+ 1109              	ssd1306_DrawArc:
+ 1110              	.LVL103:
+ 1111              	.LFB80:
+ 347:Core/Src/ssd1306.c **** /*DrawArc. Draw angle is beginning from 4 quart of trigonometric circle (3pi/2)
+ 348:Core/Src/ssd1306.c ****  * start_angle in degree
+ 349:Core/Src/ssd1306.c ****  * sweep in degree
+ 350:Core/Src/ssd1306.c ****  */
+ 351:Core/Src/ssd1306.c **** void ssd1306_DrawArc(uint8_t x, uint8_t y, uint8_t radius, uint16_t start_angle, uint16_t sweep, SS
+ 1112              		.loc 1 351 119 is_stmt 1 view -0
+ 1113              		.cfi_startproc
+ 1114              		@ args = 8, pretend = 0, frame = 32
+ 1115              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1116              		.loc 1 351 119 is_stmt 0 view .LVU251
+ 1117 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 1118              	.LCFI23:
+ 1119              		.cfi_def_cfa_offset 36
+ 1120              		.cfi_offset 4, -36
+ 1121              		.cfi_offset 5, -32
+ 1122              		.cfi_offset 6, -28
+ 1123              		.cfi_offset 7, -24
+ 1124              		.cfi_offset 8, -20
+ 1125              		.cfi_offset 9, -16
+ 1126              		.cfi_offset 10, -12
+ 1127              		.cfi_offset 11, -8
+ 1128              		.cfi_offset 14, -4
+ 1129 0004 8BB0     		sub	sp, sp, #44
+ 1130              	.LCFI24:
+ 1131              		.cfi_def_cfa_offset 80
+ 1132 0006 8146     		mov	r9, r0
+ 1133 0008 8B46     		mov	fp, r1
+ 1134 000a 0792     		str	r2, [sp, #28]
+ 1135 000c 1D46     		mov	r5, r3
+ 1136 000e 9DF85430 		ldrb	r3, [sp, #84]	@ zero_extendqisi2
+ 1137              	.LVL104:
+ 1138              		.loc 1 351 119 view .LVU252
+ 1139 0012 0893     		str	r3, [sp, #32]
+ 352:Core/Src/ssd1306.c ****     #define CIRCLE_APPROXIMATION_SEGMENTS 36
+ 353:Core/Src/ssd1306.c ****     float approx_degree;
+ 1140              		.loc 1 353 5 is_stmt 1 view .LVU253
+ 354:Core/Src/ssd1306.c ****     uint32_t approx_segments;
+ 1141              		.loc 1 354 5 view .LVU254
+ 355:Core/Src/ssd1306.c ****     uint8_t xp1,xp2;
+ 1142              		.loc 1 355 5 view .LVU255
+ 356:Core/Src/ssd1306.c ****     uint8_t yp1,yp2;
+ 1143              		.loc 1 356 5 view .LVU256
+ 357:Core/Src/ssd1306.c ****     uint32_t count = 0;
+ 1144              		.loc 1 357 5 view .LVU257
+ 1145              	.LVL105:
+ 358:Core/Src/ssd1306.c ****     uint32_t loc_sweep = 0;
+ 1146              		.loc 1 358 5 view .LVU258
+ 359:Core/Src/ssd1306.c ****     float rad;
+ARM GAS  /tmp/ccx0Bhm1.s 			page 31
+
+
+ 1147              		.loc 1 359 5 view .LVU259
+ 360:Core/Src/ssd1306.c ****     
+ 361:Core/Src/ssd1306.c ****     loc_sweep = ssd1306_NormalizeTo0_360(sweep);
+ 1148              		.loc 1 361 5 view .LVU260
+ 1149              		.loc 1 361 17 is_stmt 0 view .LVU261
+ 1150 0014 BDF85000 		ldrh	r0, [sp, #80]
+ 1151              	.LVL106:
+ 1152              		.loc 1 361 17 view .LVU262
+ 1153 0018 FFF7FEFF 		bl	ssd1306_NormalizeTo0_360
+ 1154              	.LVL107:
+ 1155              		.loc 1 361 17 view .LVU263
+ 1156 001c 0446     		mov	r4, r0
+ 1157              	.LVL108:
+ 362:Core/Src/ssd1306.c ****     
+ 363:Core/Src/ssd1306.c ****     count = (ssd1306_NormalizeTo0_360(start_angle) * CIRCLE_APPROXIMATION_SEGMENTS) / 360;
+ 1158              		.loc 1 363 5 is_stmt 1 view .LVU264
+ 1159              		.loc 1 363 14 is_stmt 0 view .LVU265
+ 1160 001e 2846     		mov	r0, r5
+ 1161              	.LVL109:
+ 1162              		.loc 1 363 14 view .LVU266
+ 1163 0020 FFF7FEFF 		bl	ssd1306_NormalizeTo0_360
+ 1164              	.LVL110:
+ 1165              		.loc 1 363 85 view .LVU267
+ 1166 0024 444B     		ldr	r3, .L102
+ 1167 0026 83FB003A 		smull	r3, r10, r3, r0
+ 1168 002a C017     		asrs	r0, r0, #31
+ 1169 002c C0EBAA0A 		rsb	r10, r0, r10, asr #2
+ 1170              	.LVL111:
+ 364:Core/Src/ssd1306.c ****     approx_segments = (loc_sweep * CIRCLE_APPROXIMATION_SEGMENTS) / 360;
+ 1171              		.loc 1 364 5 is_stmt 1 view .LVU268
+ 1172              		.loc 1 364 34 is_stmt 0 view .LVU269
+ 1173 0030 04EBC403 		add	r3, r4, r4, lsl #3
+ 1174              		.loc 1 364 21 view .LVU270
+ 1175 0034 C3F35C03 		ubfx	r3, r3, #1, #29
+ 1176 0038 404A     		ldr	r2, .L102+4
+ 1177 003a A2FB0323 		umull	r2, r3, r2, r3
+ 1178 003e 9D08     		lsrs	r5, r3, #2
+ 1179              	.LVL112:
+ 365:Core/Src/ssd1306.c ****     approx_degree = loc_sweep / (float)approx_segments;
+ 1180              		.loc 1 365 5 is_stmt 1 view .LVU271
+ 1181              		.loc 1 365 31 is_stmt 0 view .LVU272
+ 1182 0040 2046     		mov	r0, r4
+ 1183 0042 FFF7FEFF 		bl	__aeabi_ui2f
+ 1184              	.LVL113:
+ 1185 0046 0446     		mov	r4, r0
+ 1186              	.LVL114:
+ 1187              		.loc 1 365 31 view .LVU273
+ 1188 0048 0990     		str	r0, [sp, #36]	@ float
+ 1189              		.loc 1 365 33 view .LVU274
+ 1190 004a 2846     		mov	r0, r5
+ 1191 004c FFF7FEFF 		bl	__aeabi_ui2f
+ 1192              	.LVL115:
+ 1193 0050 0146     		mov	r1, r0
+ 1194              		.loc 1 365 19 view .LVU275
+ 1195 0052 2046     		mov	r0, r4
+ 1196 0054 FFF7FEFF 		bl	__aeabi_fdiv
+ 1197              	.LVL116:
+ARM GAS  /tmp/ccx0Bhm1.s 			page 32
+
+
+ 1198 0058 0746     		mov	r7, r0
+ 1199              	.LVL117:
+ 366:Core/Src/ssd1306.c ****     while(count < approx_segments)
+ 1200              		.loc 1 366 5 is_stmt 1 view .LVU276
+ 1201 005a A846     		mov	r8, r5
+ 1202              		.loc 1 366 10 is_stmt 0 view .LVU277
+ 1203 005c 2BE0     		b	.L96
+ 1204              	.LVL118:
+ 1205              	.L97:
+ 367:Core/Src/ssd1306.c ****     {
+ 368:Core/Src/ssd1306.c ****         rad = ssd1306_DegToRad(count*approx_degree);
+ 369:Core/Src/ssd1306.c ****         xp1 = x + (int8_t)(sin(rad)*radius);
+ 370:Core/Src/ssd1306.c ****         yp1 = y + (int8_t)(cos(rad)*radius);    
+ 371:Core/Src/ssd1306.c ****         count++;
+ 372:Core/Src/ssd1306.c ****         if(count != approx_segments)
+ 373:Core/Src/ssd1306.c ****         {
+ 374:Core/Src/ssd1306.c ****             rad = ssd1306_DegToRad(count*approx_degree);
+ 375:Core/Src/ssd1306.c ****         }
+ 376:Core/Src/ssd1306.c ****         else
+ 377:Core/Src/ssd1306.c ****         {            
+ 378:Core/Src/ssd1306.c ****             rad = ssd1306_DegToRad(loc_sweep);
+ 1206              		.loc 1 378 13 is_stmt 1 view .LVU278
+ 1207              		.loc 1 378 19 is_stmt 0 view .LVU279
+ 1208 005e 0998     		ldr	r0, [sp, #36]	@ float
+ 1209 0060 FFF7FEFF 		bl	ssd1306_DegToRad
+ 1210              	.LVL119:
+ 1211              	.L98:
+ 379:Core/Src/ssd1306.c ****         }
+ 380:Core/Src/ssd1306.c ****         xp2 = x + (int8_t)(sin(rad)*radius);
+ 1212              		.loc 1 380 9 is_stmt 1 view .LVU280
+ 1213              		.loc 1 380 28 is_stmt 0 view .LVU281
+ 1214 0064 FFF7FEFF 		bl	__aeabi_f2d
+ 1215              	.LVL120:
+ 1216              		.loc 1 380 28 view .LVU282
+ 1217 0068 0246     		mov	r2, r0
+ 1218 006a 0B46     		mov	r3, r1
+ 1219 006c CDE90423 		strd	r2, [sp, #16]
+ 1220 0070 FFF7FEFF 		bl	sin
+ 1221              	.LVL121:
+ 1222 0074 0246     		mov	r2, r0
+ 1223 0076 0B46     		mov	r3, r1
+ 1224              		.loc 1 380 36 view .LVU283
+ 1225 0078 DDE90201 		ldrd	r0, [sp, #8]
+ 1226 007c FFF7FEFF 		bl	__aeabi_dmul
+ 1227              	.LVL122:
+ 1228              		.loc 1 380 19 view .LVU284
+ 1229 0080 FFF7FEFF 		bl	__aeabi_d2iz
+ 1230              	.LVL123:
+ 1231 0084 C5B2     		uxtb	r5, r0
+ 1232              		.loc 1 380 13 view .LVU285
+ 1233 0086 4D44     		add	r5, r5, r9
+ 1234 0088 EDB2     		uxtb	r5, r5
+ 1235              	.LVL124:
+ 381:Core/Src/ssd1306.c ****         yp2 = y + (int8_t)(cos(rad)*radius);    
+ 1236              		.loc 1 381 9 is_stmt 1 view .LVU286
+ 1237              		.loc 1 381 28 is_stmt 0 view .LVU287
+ 1238 008a DDE90401 		ldrd	r0, [sp, #16]
+ARM GAS  /tmp/ccx0Bhm1.s 			page 33
+
+
+ 1239 008e FFF7FEFF 		bl	cos
+ 1240              	.LVL125:
+ 1241 0092 0246     		mov	r2, r0
+ 1242 0094 0B46     		mov	r3, r1
+ 1243              		.loc 1 381 36 view .LVU288
+ 1244 0096 DDE90201 		ldrd	r0, [sp, #8]
+ 1245 009a FFF7FEFF 		bl	__aeabi_dmul
+ 1246              	.LVL126:
+ 1247              		.loc 1 381 19 view .LVU289
+ 1248 009e FFF7FEFF 		bl	__aeabi_d2iz
+ 1249              	.LVL127:
+ 1250 00a2 C3B2     		uxtb	r3, r0
+ 1251              		.loc 1 381 13 view .LVU290
+ 1252 00a4 5B44     		add	r3, r3, fp
+ 1253              	.LVL128:
+ 382:Core/Src/ssd1306.c ****         ssd1306_Line(xp1,yp1,xp2,yp2,color);
+ 1254              		.loc 1 382 9 is_stmt 1 view .LVU291
+ 1255 00a6 089A     		ldr	r2, [sp, #32]
+ 1256 00a8 0092     		str	r2, [sp]
+ 1257 00aa DBB2     		uxtb	r3, r3
+ 1258              		.loc 1 382 9 is_stmt 0 view .LVU292
+ 1259 00ac 2A46     		mov	r2, r5
+ 1260 00ae 2146     		mov	r1, r4
+ 1261 00b0 3046     		mov	r0, r6
+ 1262 00b2 FFF7FEFF 		bl	ssd1306_Line
+ 1263              	.LVL129:
+ 1264              	.L96:
+ 366:Core/Src/ssd1306.c ****     {
+ 1265              		.loc 1 366 10 is_stmt 1 view .LVU293
+ 1266 00b6 C245     		cmp	r10, r8
+ 1267 00b8 3BD2     		bcs	.L101
+ 368:Core/Src/ssd1306.c ****         xp1 = x + (int8_t)(sin(rad)*radius);
+ 1268              		.loc 1 368 9 view .LVU294
+ 368:Core/Src/ssd1306.c ****         xp1 = x + (int8_t)(sin(rad)*radius);
+ 1269              		.loc 1 368 15 is_stmt 0 view .LVU295
+ 1270 00ba 5046     		mov	r0, r10
+ 1271 00bc FFF7FEFF 		bl	__aeabi_ui2f
+ 1272              	.LVL130:
+ 1273 00c0 3946     		mov	r1, r7
+ 1274 00c2 FFF7FEFF 		bl	__aeabi_fmul
+ 1275              	.LVL131:
+ 1276 00c6 FFF7FEFF 		bl	ssd1306_DegToRad
+ 1277              	.LVL132:
+ 369:Core/Src/ssd1306.c ****         yp1 = y + (int8_t)(cos(rad)*radius);    
+ 1278              		.loc 1 369 9 is_stmt 1 view .LVU296
+ 369:Core/Src/ssd1306.c ****         yp1 = y + (int8_t)(cos(rad)*radius);    
+ 1279              		.loc 1 369 28 is_stmt 0 view .LVU297
+ 1280 00ca FFF7FEFF 		bl	__aeabi_f2d
+ 1281              	.LVL133:
+ 369:Core/Src/ssd1306.c ****         yp1 = y + (int8_t)(cos(rad)*radius);    
+ 1282              		.loc 1 369 28 view .LVU298
+ 1283 00ce 0446     		mov	r4, r0
+ 1284 00d0 0D46     		mov	r5, r1
+ 1285 00d2 FFF7FEFF 		bl	sin
+ 1286              	.LVL134:
+ 1287 00d6 CDE90401 		strd	r0, [sp, #16]
+ 369:Core/Src/ssd1306.c ****         yp1 = y + (int8_t)(cos(rad)*radius);    
+ARM GAS  /tmp/ccx0Bhm1.s 			page 34
+
+
+ 1288              		.loc 1 369 36 view .LVU299
+ 1289 00da 0798     		ldr	r0, [sp, #28]
+ 1290 00dc FFF7FEFF 		bl	__aeabi_i2d
+ 1291              	.LVL135:
+ 1292 00e0 0246     		mov	r2, r0
+ 1293 00e2 0B46     		mov	r3, r1
+ 1294 00e4 CDE90223 		strd	r2, [sp, #8]
+ 1295 00e8 DDE90401 		ldrd	r0, [sp, #16]
+ 1296 00ec FFF7FEFF 		bl	__aeabi_dmul
+ 1297              	.LVL136:
+ 369:Core/Src/ssd1306.c ****         yp1 = y + (int8_t)(cos(rad)*radius);    
+ 1298              		.loc 1 369 19 view .LVU300
+ 1299 00f0 FFF7FEFF 		bl	__aeabi_d2iz
+ 1300              	.LVL137:
+ 1301 00f4 C6B2     		uxtb	r6, r0
+ 369:Core/Src/ssd1306.c ****         yp1 = y + (int8_t)(cos(rad)*radius);    
+ 1302              		.loc 1 369 13 view .LVU301
+ 1303 00f6 4E44     		add	r6, r6, r9
+ 1304 00f8 F6B2     		uxtb	r6, r6
+ 1305              	.LVL138:
+ 370:Core/Src/ssd1306.c ****         count++;
+ 1306              		.loc 1 370 9 is_stmt 1 view .LVU302
+ 370:Core/Src/ssd1306.c ****         count++;
+ 1307              		.loc 1 370 28 is_stmt 0 view .LVU303
+ 1308 00fa 2046     		mov	r0, r4
+ 1309 00fc 2946     		mov	r1, r5
+ 1310 00fe FFF7FEFF 		bl	cos
+ 1311              	.LVL139:
+ 1312 0102 0246     		mov	r2, r0
+ 1313 0104 0B46     		mov	r3, r1
+ 370:Core/Src/ssd1306.c ****         count++;
+ 1314              		.loc 1 370 36 view .LVU304
+ 1315 0106 DDE90201 		ldrd	r0, [sp, #8]
+ 1316 010a FFF7FEFF 		bl	__aeabi_dmul
+ 1317              	.LVL140:
+ 370:Core/Src/ssd1306.c ****         count++;
+ 1318              		.loc 1 370 19 view .LVU305
+ 1319 010e FFF7FEFF 		bl	__aeabi_d2iz
+ 1320              	.LVL141:
+ 1321 0112 C4B2     		uxtb	r4, r0
+ 370:Core/Src/ssd1306.c ****         count++;
+ 1322              		.loc 1 370 13 view .LVU306
+ 1323 0114 5C44     		add	r4, r4, fp
+ 1324 0116 E4B2     		uxtb	r4, r4
+ 1325              	.LVL142:
+ 371:Core/Src/ssd1306.c ****         if(count != approx_segments)
+ 1326              		.loc 1 371 9 is_stmt 1 view .LVU307
+ 371:Core/Src/ssd1306.c ****         if(count != approx_segments)
+ 1327              		.loc 1 371 14 is_stmt 0 view .LVU308
+ 1328 0118 0AF1010A 		add	r10, r10, #1
+ 1329              	.LVL143:
+ 372:Core/Src/ssd1306.c ****         {
+ 1330              		.loc 1 372 9 is_stmt 1 view .LVU309
+ 372:Core/Src/ssd1306.c ****         {
+ 1331              		.loc 1 372 11 is_stmt 0 view .LVU310
+ 1332 011c D045     		cmp	r8, r10
+ 1333 011e 9ED0     		beq	.L97
+ARM GAS  /tmp/ccx0Bhm1.s 			page 35
+
+
+ 374:Core/Src/ssd1306.c ****         }
+ 1334              		.loc 1 374 13 is_stmt 1 view .LVU311
+ 374:Core/Src/ssd1306.c ****         }
+ 1335              		.loc 1 374 19 is_stmt 0 view .LVU312
+ 1336 0120 5046     		mov	r0, r10
+ 1337 0122 FFF7FEFF 		bl	__aeabi_ui2f
+ 1338              	.LVL144:
+ 1339 0126 3946     		mov	r1, r7
+ 1340 0128 FFF7FEFF 		bl	__aeabi_fmul
+ 1341              	.LVL145:
+ 1342 012c FFF7FEFF 		bl	ssd1306_DegToRad
+ 1343              	.LVL146:
+ 374:Core/Src/ssd1306.c ****         }
+ 1344              		.loc 1 374 19 view .LVU313
+ 1345 0130 98E7     		b	.L98
+ 1346              	.LVL147:
+ 1347              	.L101:
+ 383:Core/Src/ssd1306.c ****     }
+ 384:Core/Src/ssd1306.c ****     
+ 385:Core/Src/ssd1306.c ****     return;
+ 386:Core/Src/ssd1306.c **** }
+ 1348              		.loc 1 386 1 view .LVU314
+ 1349 0132 0BB0     		add	sp, sp, #44
+ 1350              	.LCFI25:
+ 1351              		.cfi_def_cfa_offset 36
+ 1352              		@ sp needed
+ 1353 0134 BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 1354              	.LVL148:
+ 1355              	.L103:
+ 1356              		.loc 1 386 1 view .LVU315
+ 1357              		.align	2
+ 1358              	.L102:
+ 1359 0138 67666666 		.word	1717986919
+ 1360 013c 176CC116 		.word	381774871
+ 1361              		.cfi_endproc
+ 1362              	.LFE80:
+ 1364              		.section	.text.ssd1306_DrawCircle,"ax",%progbits
+ 1365              		.align	1
+ 1366              		.global	ssd1306_DrawCircle
+ 1367              		.syntax unified
+ 1368              		.thumb
+ 1369              		.thumb_func
+ 1371              	ssd1306_DrawCircle:
+ 1372              	.LVL149:
+ 1373              	.LFB81:
+ 387:Core/Src/ssd1306.c **** //Draw circle by Bresenhem's algorithm
+ 388:Core/Src/ssd1306.c **** void ssd1306_DrawCircle(uint8_t par_x,uint8_t par_y,uint8_t par_r,SSD1306_COLOR par_color) {
+ 1374              		.loc 1 388 92 is_stmt 1 view -0
+ 1375              		.cfi_startproc
+ 1376              		@ args = 0, pretend = 0, frame = 8
+ 1377              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1378              		.loc 1 388 92 is_stmt 0 view .LVU317
+ 1379 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 1380              	.LCFI26:
+ 1381              		.cfi_def_cfa_offset 36
+ 1382              		.cfi_offset 4, -36
+ 1383              		.cfi_offset 5, -32
+ARM GAS  /tmp/ccx0Bhm1.s 			page 36
+
+
+ 1384              		.cfi_offset 6, -28
+ 1385              		.cfi_offset 7, -24
+ 1386              		.cfi_offset 8, -20
+ 1387              		.cfi_offset 9, -16
+ 1388              		.cfi_offset 10, -12
+ 1389              		.cfi_offset 11, -8
+ 1390              		.cfi_offset 14, -4
+ 1391 0004 83B0     		sub	sp, sp, #12
+ 1392              	.LCFI27:
+ 1393              		.cfi_def_cfa_offset 48
+ 1394 0006 0090     		str	r0, [sp]
+ 1395 0008 0191     		str	r1, [sp, #4]
+ 389:Core/Src/ssd1306.c ****   int32_t x = -par_r;
+ 1396              		.loc 1 389 3 is_stmt 1 view .LVU318
+ 1397              	.LVL150:
+ 390:Core/Src/ssd1306.c ****   int32_t y = 0;
+ 1398              		.loc 1 390 3 view .LVU319
+ 391:Core/Src/ssd1306.c ****   int32_t err = 2 - 2 * par_r;
+ 1399              		.loc 1 391 3 view .LVU320
+ 392:Core/Src/ssd1306.c ****   int32_t e2;
+ 1400              		.loc 1 392 3 view .LVU321
+ 393:Core/Src/ssd1306.c **** 
+ 394:Core/Src/ssd1306.c ****   if (par_x >= SSD1306_WIDTH || par_y >= SSD1306_HEIGHT) {
+ 1401              		.loc 1 394 3 view .LVU322
+ 1402              		.loc 1 394 6 is_stmt 0 view .LVU323
+ 1403 000a 10F0800F 		tst	r0, #128
+ 1404 000e 4AD1     		bne	.L104
+ 1405 0010 9A46     		mov	r10, r3
+ 1406 0012 5742     		rsbs	r7, r2, #0
+ 1407              	.LVL151:
+ 1408              		.loc 1 394 6 view .LVU324
+ 1409 0014 C2F10102 		rsb	r2, r2, #1
+ 1410              	.LVL152:
+ 1411              		.loc 1 394 6 view .LVU325
+ 1412 0018 5400     		lsls	r4, r2, #1
+ 1413              		.loc 1 394 30 discriminator 1 view .LVU326
+ 1414 001a 3F29     		cmp	r1, #63
+ 1415 001c 43D8     		bhi	.L104
+ 390:Core/Src/ssd1306.c ****   int32_t err = 2 - 2 * par_r;
+ 1416              		.loc 1 390 11 view .LVU327
+ 1417 001e 4FF0000B 		mov	fp, #0
+ 1418 0022 08E0     		b	.L108
+ 1419              	.LVL153:
+ 1420              	.L109:
+ 390:Core/Src/ssd1306.c ****   int32_t err = 2 - 2 * par_r;
+ 1421              		.loc 1 390 11 view .LVU328
+ 1422 0024 2346     		mov	r3, r4
+ 1423              	.LVL154:
+ 1424              	.L106:
+ 395:Core/Src/ssd1306.c ****     return;
+ 396:Core/Src/ssd1306.c ****   }
+ 397:Core/Src/ssd1306.c **** 
+ 398:Core/Src/ssd1306.c ****     do {
+ 399:Core/Src/ssd1306.c ****       ssd1306_DrawPixel(par_x - x, par_y + y, par_color);
+ 400:Core/Src/ssd1306.c ****       ssd1306_DrawPixel(par_x + x, par_y + y, par_color);
+ 401:Core/Src/ssd1306.c ****       ssd1306_DrawPixel(par_x + x, par_y - y, par_color);
+ 402:Core/Src/ssd1306.c ****       ssd1306_DrawPixel(par_x - x, par_y - y, par_color);
+ARM GAS  /tmp/ccx0Bhm1.s 			page 37
+
+
+ 403:Core/Src/ssd1306.c ****         e2 = err;
+ 404:Core/Src/ssd1306.c ****         if (e2 <= y) {
+ 405:Core/Src/ssd1306.c ****             y++;
+ 406:Core/Src/ssd1306.c ****             err = err + (y * 2 + 1);
+ 407:Core/Src/ssd1306.c ****             if(-x == y && e2 <= x) {
+ 408:Core/Src/ssd1306.c ****               e2 = 0;
+ 409:Core/Src/ssd1306.c ****             }
+ 410:Core/Src/ssd1306.c ****             else
+ 411:Core/Src/ssd1306.c ****             {
+ 412:Core/Src/ssd1306.c ****               /*nothing to do*/
+ 413:Core/Src/ssd1306.c ****             }
+ 414:Core/Src/ssd1306.c ****         }
+ 415:Core/Src/ssd1306.c ****         else
+ 416:Core/Src/ssd1306.c ****         {
+ 417:Core/Src/ssd1306.c ****           /*nothing to do*/
+ 418:Core/Src/ssd1306.c ****         }
+ 1425              		.loc 1 418 9 is_stmt 1 view .LVU329
+ 419:Core/Src/ssd1306.c ****         if(e2 > x) {
+ 1426              		.loc 1 419 9 view .LVU330
+ 1427              		.loc 1 419 11 is_stmt 0 view .LVU331
+ 1428 0026 A742     		cmp	r7, r4
+ 1429 0028 3BDA     		bge	.L111
+ 420:Core/Src/ssd1306.c ****           x++;
+ 1430              		.loc 1 420 11 is_stmt 1 view .LVU332
+ 1431              		.loc 1 420 12 is_stmt 0 view .LVU333
+ 1432 002a 0137     		adds	r7, r7, #1
+ 1433              	.LVL155:
+ 421:Core/Src/ssd1306.c ****           err = err + (x * 2 + 1);
+ 1434              		.loc 1 421 11 is_stmt 1 view .LVU334
+ 1435              		.loc 1 421 26 is_stmt 0 view .LVU335
+ 1436 002c 7C00     		lsls	r4, r7, #1
+ 1437              	.LVL156:
+ 1438              		.loc 1 421 30 view .LVU336
+ 1439 002e 0134     		adds	r4, r4, #1
+ 1440              		.loc 1 421 15 view .LVU337
+ 1441 0030 1C44     		add	r4, r4, r3
+ 1442              	.LVL157:
+ 1443              	.L107:
+ 422:Core/Src/ssd1306.c ****         }
+ 423:Core/Src/ssd1306.c ****         else
+ 424:Core/Src/ssd1306.c ****         {
+ 425:Core/Src/ssd1306.c ****           /*nothing to do*/
+ 426:Core/Src/ssd1306.c ****         }
+ 1444              		.loc 1 426 9 is_stmt 1 view .LVU338
+ 427:Core/Src/ssd1306.c ****     } while(x <= 0);
+ 1445              		.loc 1 427 12 view .LVU339
+ 1446              		.loc 1 427 5 is_stmt 0 view .LVU340
+ 1447 0032 002F     		cmp	r7, #0
+ 1448 0034 37DC     		bgt	.L104
+ 1449              	.LVL158:
+ 1450              	.L108:
+ 398:Core/Src/ssd1306.c ****       ssd1306_DrawPixel(par_x - x, par_y + y, par_color);
+ 1451              		.loc 1 398 5 is_stmt 1 view .LVU341
+ 399:Core/Src/ssd1306.c ****       ssd1306_DrawPixel(par_x + x, par_y + y, par_color);
+ 1452              		.loc 1 399 7 view .LVU342
+ 1453 0036 FEB2     		uxtb	r6, r7
+ 1454 0038 009B     		ldr	r3, [sp]
+ARM GAS  /tmp/ccx0Bhm1.s 			page 38
+
+
+ 1455 003a A3EB0608 		sub	r8, r3, r6
+ 1456 003e 5FFA88F8 		uxtb	r8, r8
+ 1457 0042 5FFA8BF5 		uxtb	r5, fp
+ 1458 0046 0199     		ldr	r1, [sp, #4]
+ 1459 0048 05EB0109 		add	r9, r5, r1
+ 1460 004c 5FFA89F9 		uxtb	r9, r9
+ 1461 0050 5246     		mov	r2, r10
+ 1462 0052 4946     		mov	r1, r9
+ 1463 0054 4046     		mov	r0, r8
+ 1464 0056 FFF7FEFF 		bl	ssd1306_DrawPixel
+ 1465              	.LVL159:
+ 400:Core/Src/ssd1306.c ****       ssd1306_DrawPixel(par_x + x, par_y - y, par_color);
+ 1466              		.loc 1 400 7 view .LVU343
+ 1467 005a 009A     		ldr	r2, [sp]
+ 1468 005c 1644     		add	r6, r6, r2
+ 1469 005e F6B2     		uxtb	r6, r6
+ 1470 0060 5246     		mov	r2, r10
+ 1471 0062 4946     		mov	r1, r9
+ 1472 0064 3046     		mov	r0, r6
+ 1473 0066 FFF7FEFF 		bl	ssd1306_DrawPixel
+ 1474              	.LVL160:
+ 401:Core/Src/ssd1306.c ****       ssd1306_DrawPixel(par_x - x, par_y - y, par_color);
+ 1475              		.loc 1 401 7 view .LVU344
+ 1476 006a 019B     		ldr	r3, [sp, #4]
+ 1477 006c 5D1B     		subs	r5, r3, r5
+ 1478 006e EDB2     		uxtb	r5, r5
+ 1479 0070 5246     		mov	r2, r10
+ 1480 0072 2946     		mov	r1, r5
+ 1481 0074 3046     		mov	r0, r6
+ 1482 0076 FFF7FEFF 		bl	ssd1306_DrawPixel
+ 1483              	.LVL161:
+ 402:Core/Src/ssd1306.c ****         e2 = err;
+ 1484              		.loc 1 402 7 view .LVU345
+ 1485 007a 5246     		mov	r2, r10
+ 1486 007c 2946     		mov	r1, r5
+ 1487 007e 4046     		mov	r0, r8
+ 1488 0080 FFF7FEFF 		bl	ssd1306_DrawPixel
+ 1489              	.LVL162:
+ 403:Core/Src/ssd1306.c ****         if (e2 <= y) {
+ 1490              		.loc 1 403 9 view .LVU346
+ 404:Core/Src/ssd1306.c ****             y++;
+ 1491              		.loc 1 404 9 view .LVU347
+ 404:Core/Src/ssd1306.c ****             y++;
+ 1492              		.loc 1 404 12 is_stmt 0 view .LVU348
+ 1493 0084 A345     		cmp	fp, r4
+ 1494 0086 CDDB     		blt	.L109
+ 405:Core/Src/ssd1306.c ****             err = err + (y * 2 + 1);
+ 1495              		.loc 1 405 13 is_stmt 1 view .LVU349
+ 405:Core/Src/ssd1306.c ****             err = err + (y * 2 + 1);
+ 1496              		.loc 1 405 14 is_stmt 0 view .LVU350
+ 1497 0088 0BF1010B 		add	fp, fp, #1
+ 1498              	.LVL163:
+ 406:Core/Src/ssd1306.c ****             if(-x == y && e2 <= x) {
+ 1499              		.loc 1 406 13 is_stmt 1 view .LVU351
+ 406:Core/Src/ssd1306.c ****             if(-x == y && e2 <= x) {
+ 1500              		.loc 1 406 28 is_stmt 0 view .LVU352
+ 1501 008c 4FEA4B03 		lsl	r3, fp, #1
+ARM GAS  /tmp/ccx0Bhm1.s 			page 39
+
+
+ 406:Core/Src/ssd1306.c ****             if(-x == y && e2 <= x) {
+ 1502              		.loc 1 406 32 view .LVU353
+ 1503 0090 0133     		adds	r3, r3, #1
+ 406:Core/Src/ssd1306.c ****             if(-x == y && e2 <= x) {
+ 1504              		.loc 1 406 17 view .LVU354
+ 1505 0092 2344     		add	r3, r3, r4
+ 1506              	.LVL164:
+ 407:Core/Src/ssd1306.c ****               e2 = 0;
+ 1507              		.loc 1 407 13 is_stmt 1 view .LVU355
+ 407:Core/Src/ssd1306.c ****               e2 = 0;
+ 1508              		.loc 1 407 15 is_stmt 0 view .LVU356
+ 1509 0094 1BEB070F 		cmn	fp, r7
+ 1510 0098 C5D1     		bne	.L106
+ 407:Core/Src/ssd1306.c ****               e2 = 0;
+ 1511              		.loc 1 407 24 discriminator 1 view .LVU357
+ 1512 009a A742     		cmp	r7, r4
+ 1513 009c C3DB     		blt	.L106
+ 408:Core/Src/ssd1306.c ****             }
+ 1514              		.loc 1 408 18 view .LVU358
+ 1515 009e 0024     		movs	r4, #0
+ 1516              	.LVL165:
+ 408:Core/Src/ssd1306.c ****             }
+ 1517              		.loc 1 408 18 view .LVU359
+ 1518 00a0 C1E7     		b	.L106
+ 1519              	.LVL166:
+ 1520              	.L111:
+ 408:Core/Src/ssd1306.c ****             }
+ 1521              		.loc 1 408 18 view .LVU360
+ 1522 00a2 1C46     		mov	r4, r3
+ 1523              	.LVL167:
+ 408:Core/Src/ssd1306.c ****             }
+ 1524              		.loc 1 408 18 view .LVU361
+ 1525 00a4 C5E7     		b	.L107
+ 1526              	.LVL168:
+ 1527              	.L104:
+ 428:Core/Src/ssd1306.c **** 
+ 429:Core/Src/ssd1306.c ****     return;
+ 430:Core/Src/ssd1306.c **** }
+ 1528              		.loc 1 430 1 view .LVU362
+ 1529 00a6 03B0     		add	sp, sp, #12
+ 1530              	.LCFI28:
+ 1531              		.cfi_def_cfa_offset 36
+ 1532              		@ sp needed
+ 1533 00a8 BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 1534              		.cfi_endproc
+ 1535              	.LFE81:
+ 1537              		.section	.text.ssd1306_DrawRectangle,"ax",%progbits
+ 1538              		.align	1
+ 1539              		.global	ssd1306_DrawRectangle
+ 1540              		.syntax unified
+ 1541              		.thumb
+ 1542              		.thumb_func
+ 1544              	ssd1306_DrawRectangle:
+ 1545              	.LVL169:
+ 1546              	.LFB82:
+ 431:Core/Src/ssd1306.c **** 
+ 432:Core/Src/ssd1306.c **** //Draw rectangle
+ARM GAS  /tmp/ccx0Bhm1.s 			page 40
+
+
+ 433:Core/Src/ssd1306.c **** void ssd1306_DrawRectangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, SSD1306_COLOR color) {
+ 1547              		.loc 1 433 97 is_stmt 1 view -0
+ 1548              		.cfi_startproc
+ 1549              		@ args = 4, pretend = 0, frame = 0
+ 1550              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1551              		.loc 1 433 97 is_stmt 0 view .LVU364
+ 1552 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 1553              	.LCFI29:
+ 1554              		.cfi_def_cfa_offset 24
+ 1555              		.cfi_offset 4, -24
+ 1556              		.cfi_offset 5, -20
+ 1557              		.cfi_offset 6, -16
+ 1558              		.cfi_offset 7, -12
+ 1559              		.cfi_offset 8, -8
+ 1560              		.cfi_offset 14, -4
+ 1561 0004 82B0     		sub	sp, sp, #8
+ 1562              	.LCFI30:
+ 1563              		.cfi_def_cfa_offset 32
+ 1564 0006 0546     		mov	r5, r0
+ 1565 0008 0E46     		mov	r6, r1
+ 1566 000a 1746     		mov	r7, r2
+ 1567 000c 1C46     		mov	r4, r3
+ 1568 000e 9DF82080 		ldrb	r8, [sp, #32]	@ zero_extendqisi2
+ 434:Core/Src/ssd1306.c ****   ssd1306_Line(x1,y1,x2,y1,color);
+ 1569              		.loc 1 434 3 is_stmt 1 view .LVU365
+ 1570 0012 CDF80080 		str	r8, [sp]
+ 1571 0016 0B46     		mov	r3, r1
+ 1572              	.LVL170:
+ 1573              		.loc 1 434 3 is_stmt 0 view .LVU366
+ 1574 0018 FFF7FEFF 		bl	ssd1306_Line
+ 1575              	.LVL171:
+ 435:Core/Src/ssd1306.c ****   ssd1306_Line(x2,y1,x2,y2,color);
+ 1576              		.loc 1 435 3 is_stmt 1 view .LVU367
+ 1577 001c CDF80080 		str	r8, [sp]
+ 1578 0020 2346     		mov	r3, r4
+ 1579 0022 3A46     		mov	r2, r7
+ 1580 0024 3146     		mov	r1, r6
+ 1581 0026 3846     		mov	r0, r7
+ 1582 0028 FFF7FEFF 		bl	ssd1306_Line
+ 1583              	.LVL172:
+ 436:Core/Src/ssd1306.c ****   ssd1306_Line(x2,y2,x1,y2,color);
+ 1584              		.loc 1 436 3 view .LVU368
+ 1585 002c CDF80080 		str	r8, [sp]
+ 1586 0030 2346     		mov	r3, r4
+ 1587 0032 2A46     		mov	r2, r5
+ 1588 0034 2146     		mov	r1, r4
+ 1589 0036 3846     		mov	r0, r7
+ 1590 0038 FFF7FEFF 		bl	ssd1306_Line
+ 1591              	.LVL173:
+ 437:Core/Src/ssd1306.c ****   ssd1306_Line(x1,y2,x1,y1,color);
+ 1592              		.loc 1 437 3 view .LVU369
+ 1593 003c CDF80080 		str	r8, [sp]
+ 1594 0040 3346     		mov	r3, r6
+ 1595 0042 2A46     		mov	r2, r5
+ 1596 0044 2146     		mov	r1, r4
+ 1597 0046 2846     		mov	r0, r5
+ 1598 0048 FFF7FEFF 		bl	ssd1306_Line
+ARM GAS  /tmp/ccx0Bhm1.s 			page 41
+
+
+ 1599              	.LVL174:
+ 438:Core/Src/ssd1306.c **** 
+ 439:Core/Src/ssd1306.c ****   return;
+ 1600              		.loc 1 439 3 view .LVU370
+ 440:Core/Src/ssd1306.c **** }
+ 1601              		.loc 1 440 1 is_stmt 0 view .LVU371
+ 1602 004c 02B0     		add	sp, sp, #8
+ 1603              	.LCFI31:
+ 1604              		.cfi_def_cfa_offset 24
+ 1605              		@ sp needed
+ 1606 004e BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 1607              		.loc 1 440 1 view .LVU372
+ 1608              		.cfi_endproc
+ 1609              	.LFE82:
+ 1611              		.section	.text.ssd1306_DrawBitmap,"ax",%progbits
+ 1612              		.align	1
+ 1613              		.global	ssd1306_DrawBitmap
+ 1614              		.syntax unified
+ 1615              		.thumb
+ 1616              		.thumb_func
+ 1618              	ssd1306_DrawBitmap:
+ 1619              	.LVL175:
+ 1620              	.LFB83:
+ 441:Core/Src/ssd1306.c **** 
+ 442:Core/Src/ssd1306.c **** //Draw bitmap - ported from the ADAFruit GFX library
+ 443:Core/Src/ssd1306.c **** 
+ 444:Core/Src/ssd1306.c **** void ssd1306_DrawBitmap(uint8_t x, uint8_t y, const unsigned char* bitmap, uint8_t w, uint8_t h, SS
+ 445:Core/Src/ssd1306.c **** {
+ 1621              		.loc 1 445 1 is_stmt 1 view -0
+ 1622              		.cfi_startproc
+ 1623              		@ args = 8, pretend = 0, frame = 8
+ 1624              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1625              		.loc 1 445 1 is_stmt 0 view .LVU374
+ 1626 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 1627              	.LCFI32:
+ 1628              		.cfi_def_cfa_offset 36
+ 1629              		.cfi_offset 4, -36
+ 1630              		.cfi_offset 5, -32
+ 1631              		.cfi_offset 6, -28
+ 1632              		.cfi_offset 7, -24
+ 1633              		.cfi_offset 8, -20
+ 1634              		.cfi_offset 9, -16
+ 1635              		.cfi_offset 10, -12
+ 1636              		.cfi_offset 11, -8
+ 1637              		.cfi_offset 14, -4
+ 1638 0004 83B0     		sub	sp, sp, #12
+ 1639              	.LCFI33:
+ 1640              		.cfi_def_cfa_offset 48
+ 1641 0006 1E46     		mov	r6, r3
+ 1642 0008 9DF83030 		ldrb	r3, [sp, #48]	@ zero_extendqisi2
+ 1643              	.LVL176:
+ 1644              		.loc 1 445 1 view .LVU375
+ 1645 000c 0193     		str	r3, [sp, #4]
+ 1646 000e 9DF83430 		ldrb	r3, [sp, #52]	@ zero_extendqisi2
+ 1647 0012 0093     		str	r3, [sp]
+ 446:Core/Src/ssd1306.c ****     int16_t byteWidth = (w + 7) / 8; // Bitmap scanline pad = whole byte
+ 1648              		.loc 1 446 5 is_stmt 1 view .LVU376
+ARM GAS  /tmp/ccx0Bhm1.s 			page 42
+
+
+ 1649              	.LVL177:
+ 447:Core/Src/ssd1306.c ****     uint8_t byte = 0;
+ 1650              		.loc 1 447 5 view .LVU377
+ 448:Core/Src/ssd1306.c **** 
+ 449:Core/Src/ssd1306.c ****     if (x >= SSD1306_WIDTH || y >= SSD1306_HEIGHT) {
+ 1651              		.loc 1 449 5 view .LVU378
+ 1652              		.loc 1 449 8 is_stmt 0 view .LVU379
+ 1653 0014 10F0800F 		tst	r0, #128
+ 1654 0018 30D1     		bne	.L115
+ 1655 001a 8346     		mov	fp, r0
+ 1656 001c 8846     		mov	r8, r1
+ 1657 001e 9246     		mov	r10, r2
+ 1658 0020 06F10709 		add	r9, r6, #7
+ 1659              	.LVL178:
+ 1660              		.loc 1 449 8 view .LVU380
+ 1661 0024 4FEAD909 		lsr	r9, r9, #3
+ 1662              	.LVL179:
+ 1663              		.loc 1 449 28 discriminator 1 view .LVU381
+ 1664 0028 3F29     		cmp	r1, #63
+ 1665 002a 27D8     		bhi	.L115
+ 1666              	.LBB3:
+ 450:Core/Src/ssd1306.c ****         return;
+ 451:Core/Src/ssd1306.c ****     }
+ 452:Core/Src/ssd1306.c **** 
+ 453:Core/Src/ssd1306.c ****     for (uint8_t j = 0; j < h; j++, y++) {
+ 1667              		.loc 1 453 18 view .LVU382
+ 1668 002c 0027     		movs	r7, #0
+ 1669              	.LBE3:
+ 447:Core/Src/ssd1306.c **** 
+ 1670              		.loc 1 447 13 view .LVU383
+ 1671 002e 3D46     		mov	r5, r7
+ 1672 0030 1FE0     		b	.L118
+ 1673              	.LVL180:
+ 1674              	.L119:
+ 1675              	.LBB6:
+ 1676              	.LBB4:
+ 454:Core/Src/ssd1306.c ****         for (uint8_t i = 0; i < w; i++) {
+ 455:Core/Src/ssd1306.c ****             if (i & 7)
+ 456:Core/Src/ssd1306.c ****                 byte <<= 1;
+ 457:Core/Src/ssd1306.c ****             else
+ 458:Core/Src/ssd1306.c ****                 byte = (*(const unsigned char *)(&bitmap[j * byteWidth + i / 8]));
+ 1677              		.loc 1 458 17 is_stmt 1 view .LVU384
+ 1678              		.loc 1 458 76 is_stmt 0 view .LVU385
+ 1679 0032 E308     		lsrs	r3, r4, #3
+ 1680              		.loc 1 458 72 view .LVU386
+ 1681 0034 09FB0733 		mla	r3, r9, r7, r3
+ 1682              		.loc 1 458 22 view .LVU387
+ 1683 0038 1AF80350 		ldrb	r5, [r10, r3]	@ zero_extendqisi2
+ 1684              	.LVL181:
+ 1685              	.L120:
+ 459:Core/Src/ssd1306.c ****             if (byte & 0x80)
+ 1686              		.loc 1 459 13 is_stmt 1 view .LVU388
+ 1687              		.loc 1 459 16 is_stmt 0 view .LVU389
+ 1688 003c 15F0800F 		tst	r5, #128
+ 1689 0040 09D1     		bne	.L126
+ 1690              	.L121:
+ 454:Core/Src/ssd1306.c ****         for (uint8_t i = 0; i < w; i++) {
+ARM GAS  /tmp/ccx0Bhm1.s 			page 43
+
+
+ 1691              		.loc 1 454 36 is_stmt 1 discriminator 2 view .LVU390
+ 454:Core/Src/ssd1306.c ****         for (uint8_t i = 0; i < w; i++) {
+ 1692              		.loc 1 454 37 is_stmt 0 discriminator 2 view .LVU391
+ 1693 0042 0134     		adds	r4, r4, #1
+ 1694              	.LVL182:
+ 454:Core/Src/ssd1306.c ****         for (uint8_t i = 0; i < w; i++) {
+ 1695              		.loc 1 454 37 discriminator 2 view .LVU392
+ 1696 0044 E4B2     		uxtb	r4, r4
+ 1697              	.LVL183:
+ 1698              	.L123:
+ 454:Core/Src/ssd1306.c ****         for (uint8_t i = 0; i < w; i++) {
+ 1699              		.loc 1 454 29 is_stmt 1 discriminator 1 view .LVU393
+ 454:Core/Src/ssd1306.c ****         for (uint8_t i = 0; i < w; i++) {
+ 1700              		.loc 1 454 9 is_stmt 0 discriminator 1 view .LVU394
+ 1701 0046 B442     		cmp	r4, r6
+ 1702 0048 0DD2     		bcs	.L127
+ 455:Core/Src/ssd1306.c ****                 byte <<= 1;
+ 1703              		.loc 1 455 13 is_stmt 1 view .LVU395
+ 455:Core/Src/ssd1306.c ****                 byte <<= 1;
+ 1704              		.loc 1 455 16 is_stmt 0 view .LVU396
+ 1705 004a 14F0070F 		tst	r4, #7
+ 1706 004e F0D0     		beq	.L119
+ 456:Core/Src/ssd1306.c ****             else
+ 1707              		.loc 1 456 17 is_stmt 1 view .LVU397
+ 456:Core/Src/ssd1306.c ****             else
+ 1708              		.loc 1 456 22 is_stmt 0 view .LVU398
+ 1709 0050 6D00     		lsls	r5, r5, #1
+ 1710              	.LVL184:
+ 456:Core/Src/ssd1306.c ****             else
+ 1711              		.loc 1 456 22 view .LVU399
+ 1712 0052 EDB2     		uxtb	r5, r5
+ 1713              	.LVL185:
+ 456:Core/Src/ssd1306.c ****             else
+ 1714              		.loc 1 456 22 view .LVU400
+ 1715 0054 F2E7     		b	.L120
+ 1716              	.L126:
+ 460:Core/Src/ssd1306.c ****                 ssd1306_DrawPixel(x + i, y, color);
+ 1717              		.loc 1 460 17 is_stmt 1 view .LVU401
+ 1718 0056 04EB0B00 		add	r0, r4, fp
+ 1719 005a 009A     		ldr	r2, [sp]
+ 1720 005c 4146     		mov	r1, r8
+ 1721 005e C0B2     		uxtb	r0, r0
+ 1722 0060 FFF7FEFF 		bl	ssd1306_DrawPixel
+ 1723              	.LVL186:
+ 1724 0064 EDE7     		b	.L121
+ 1725              	.L127:
+ 1726              		.loc 1 460 17 is_stmt 0 view .LVU402
+ 1727              	.LBE4:
+ 453:Core/Src/ssd1306.c ****         for (uint8_t i = 0; i < w; i++) {
+ 1728              		.loc 1 453 32 is_stmt 1 discriminator 2 view .LVU403
+ 453:Core/Src/ssd1306.c ****         for (uint8_t i = 0; i < w; i++) {
+ 1729              		.loc 1 453 33 is_stmt 0 discriminator 2 view .LVU404
+ 1730 0066 0137     		adds	r7, r7, #1
+ 1731              	.LVL187:
+ 453:Core/Src/ssd1306.c ****         for (uint8_t i = 0; i < w; i++) {
+ 1732              		.loc 1 453 33 discriminator 2 view .LVU405
+ 1733 0068 FFB2     		uxtb	r7, r7
+ARM GAS  /tmp/ccx0Bhm1.s 			page 44
+
+
+ 1734              	.LVL188:
+ 453:Core/Src/ssd1306.c ****         for (uint8_t i = 0; i < w; i++) {
+ 1735              		.loc 1 453 38 discriminator 2 view .LVU406
+ 1736 006a 08F10108 		add	r8, r8, #1
+ 1737              	.LVL189:
+ 453:Core/Src/ssd1306.c ****         for (uint8_t i = 0; i < w; i++) {
+ 1738              		.loc 1 453 38 discriminator 2 view .LVU407
+ 1739 006e 5FFA88F8 		uxtb	r8, r8
+ 1740              	.LVL190:
+ 1741              	.L118:
+ 453:Core/Src/ssd1306.c ****         for (uint8_t i = 0; i < w; i++) {
+ 1742              		.loc 1 453 25 is_stmt 1 discriminator 1 view .LVU408
+ 453:Core/Src/ssd1306.c ****         for (uint8_t i = 0; i < w; i++) {
+ 1743              		.loc 1 453 5 is_stmt 0 discriminator 1 view .LVU409
+ 1744 0072 019B     		ldr	r3, [sp, #4]
+ 1745 0074 9F42     		cmp	r7, r3
+ 1746 0076 01D2     		bcs	.L115
+ 1747              	.LBB5:
+ 454:Core/Src/ssd1306.c ****             if (i & 7)
+ 1748              		.loc 1 454 22 view .LVU410
+ 1749 0078 0024     		movs	r4, #0
+ 1750 007a E4E7     		b	.L123
+ 1751              	.LVL191:
+ 1752              	.L115:
+ 454:Core/Src/ssd1306.c ****             if (i & 7)
+ 1753              		.loc 1 454 22 view .LVU411
+ 1754              	.LBE5:
+ 1755              	.LBE6:
+ 461:Core/Src/ssd1306.c ****         }
+ 462:Core/Src/ssd1306.c ****     }
+ 463:Core/Src/ssd1306.c ****     return;
+ 464:Core/Src/ssd1306.c **** }
+ 1756              		.loc 1 464 1 view .LVU412
+ 1757 007c 03B0     		add	sp, sp, #12
+ 1758              	.LCFI34:
+ 1759              		.cfi_def_cfa_offset 36
+ 1760              		@ sp needed
+ 1761 007e BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 1762              		.loc 1 464 1 view .LVU413
+ 1763              		.cfi_endproc
+ 1764              	.LFE83:
+ 1766              		.section	.text.ssd1306_SetContrast,"ax",%progbits
+ 1767              		.align	1
+ 1768              		.global	ssd1306_SetContrast
+ 1769              		.syntax unified
+ 1770              		.thumb
+ 1771              		.thumb_func
+ 1773              	ssd1306_SetContrast:
+ 1774              	.LVL192:
+ 1775              	.LFB84:
+ 465:Core/Src/ssd1306.c **** 
+ 466:Core/Src/ssd1306.c **** void ssd1306_SetContrast(const uint8_t value) {
+ 1776              		.loc 1 466 47 is_stmt 1 view -0
+ 1777              		.cfi_startproc
+ 1778              		@ args = 0, pretend = 0, frame = 0
+ 1779              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1780              		.loc 1 466 47 is_stmt 0 view .LVU415
+ARM GAS  /tmp/ccx0Bhm1.s 			page 45
+
+
+ 1781 0000 10B5     		push	{r4, lr}
+ 1782              	.LCFI35:
+ 1783              		.cfi_def_cfa_offset 8
+ 1784              		.cfi_offset 4, -8
+ 1785              		.cfi_offset 14, -4
+ 1786 0002 0446     		mov	r4, r0
+ 467:Core/Src/ssd1306.c ****     const uint8_t kSetContrastControlRegister = 0x81;
+ 1787              		.loc 1 467 5 is_stmt 1 view .LVU416
+ 1788              	.LVL193:
+ 468:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(kSetContrastControlRegister);
+ 1789              		.loc 1 468 5 view .LVU417
+ 1790 0004 8120     		movs	r0, #129
+ 1791              	.LVL194:
+ 1792              		.loc 1 468 5 is_stmt 0 view .LVU418
+ 1793 0006 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1794              	.LVL195:
+ 469:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(value);
+ 1795              		.loc 1 469 5 is_stmt 1 view .LVU419
+ 1796 000a 2046     		mov	r0, r4
+ 1797 000c FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1798              	.LVL196:
+ 470:Core/Src/ssd1306.c **** }
+ 1799              		.loc 1 470 1 is_stmt 0 view .LVU420
+ 1800 0010 10BD     		pop	{r4, pc}
+ 1801              		.cfi_endproc
+ 1802              	.LFE84:
+ 1804              		.section	.text.ssd1306_SetDisplayOn,"ax",%progbits
+ 1805              		.align	1
+ 1806              		.global	ssd1306_SetDisplayOn
+ 1807              		.syntax unified
+ 1808              		.thumb
+ 1809              		.thumb_func
+ 1811              	ssd1306_SetDisplayOn:
+ 1812              	.LVL197:
+ 1813              	.LFB85:
+ 471:Core/Src/ssd1306.c **** 
+ 472:Core/Src/ssd1306.c **** void ssd1306_SetDisplayOn(const uint8_t on) {
+ 1814              		.loc 1 472 45 is_stmt 1 view -0
+ 1815              		.cfi_startproc
+ 1816              		@ args = 0, pretend = 0, frame = 0
+ 1817              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1818              		.loc 1 472 45 is_stmt 0 view .LVU422
+ 1819 0000 08B5     		push	{r3, lr}
+ 1820              	.LCFI36:
+ 1821              		.cfi_def_cfa_offset 8
+ 1822              		.cfi_offset 3, -8
+ 1823              		.cfi_offset 14, -4
+ 473:Core/Src/ssd1306.c ****     uint8_t value;
+ 1824              		.loc 1 473 5 is_stmt 1 view .LVU423
+ 474:Core/Src/ssd1306.c ****     if (on) {
+ 1825              		.loc 1 474 5 view .LVU424
+ 1826              		.loc 1 474 8 is_stmt 0 view .LVU425
+ 1827 0002 30B1     		cbz	r0, .L131
+ 475:Core/Src/ssd1306.c ****         value = 0xAF;   // Display on
+ 1828              		.loc 1 475 9 is_stmt 1 view .LVU426
+ 1829              	.LVL198:
+ 476:Core/Src/ssd1306.c ****         SSD1306.DisplayOn = 1;
+ARM GAS  /tmp/ccx0Bhm1.s 			page 46
+
+
+ 1830              		.loc 1 476 9 view .LVU427
+ 1831              		.loc 1 476 27 is_stmt 0 view .LVU428
+ 1832 0004 054B     		ldr	r3, .L134
+ 1833 0006 0122     		movs	r2, #1
+ 1834 0008 5A71     		strb	r2, [r3, #5]
+ 475:Core/Src/ssd1306.c ****         value = 0xAF;   // Display on
+ 1835              		.loc 1 475 15 view .LVU429
+ 1836 000a AF20     		movs	r0, #175
+ 1837              	.LVL199:
+ 1838              	.L132:
+ 477:Core/Src/ssd1306.c ****     } else {
+ 478:Core/Src/ssd1306.c ****         value = 0xAE;   // Display off
+ 479:Core/Src/ssd1306.c ****         SSD1306.DisplayOn = 0;
+ 480:Core/Src/ssd1306.c ****     }
+ 481:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(value);
+ 1839              		.loc 1 481 5 is_stmt 1 view .LVU430
+ 1840 000c FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1841              	.LVL200:
+ 482:Core/Src/ssd1306.c **** }
+ 1842              		.loc 1 482 1 is_stmt 0 view .LVU431
+ 1843 0010 08BD     		pop	{r3, pc}
+ 1844              	.LVL201:
+ 1845              	.L131:
+ 478:Core/Src/ssd1306.c ****         SSD1306.DisplayOn = 0;
+ 1846              		.loc 1 478 9 is_stmt 1 view .LVU432
+ 479:Core/Src/ssd1306.c ****     }
+ 1847              		.loc 1 479 9 view .LVU433
+ 479:Core/Src/ssd1306.c ****     }
+ 1848              		.loc 1 479 27 is_stmt 0 view .LVU434
+ 1849 0012 024B     		ldr	r3, .L134
+ 1850 0014 0022     		movs	r2, #0
+ 1851 0016 5A71     		strb	r2, [r3, #5]
+ 478:Core/Src/ssd1306.c ****         SSD1306.DisplayOn = 0;
+ 1852              		.loc 1 478 15 view .LVU435
+ 1853 0018 AE20     		movs	r0, #174
+ 1854              	.LVL202:
+ 478:Core/Src/ssd1306.c ****         SSD1306.DisplayOn = 0;
+ 1855              		.loc 1 478 15 view .LVU436
+ 1856 001a F7E7     		b	.L132
+ 1857              	.L135:
+ 1858              		.align	2
+ 1859              	.L134:
+ 1860 001c 00000000 		.word	.LANCHOR1
+ 1861              		.cfi_endproc
+ 1862              	.LFE85:
+ 1864              		.section	.text.ssd1306_Init,"ax",%progbits
+ 1865              		.align	1
+ 1866              		.global	ssd1306_Init
+ 1867              		.syntax unified
+ 1868              		.thumb
+ 1869              		.thumb_func
+ 1871              	ssd1306_Init:
+ 1872              	.LFB69:
+  73:Core/Src/ssd1306.c ****     // Reset OLED
+ 1873              		.loc 1 73 25 is_stmt 1 view -0
+ 1874              		.cfi_startproc
+ 1875              		@ args = 0, pretend = 0, frame = 0
+ARM GAS  /tmp/ccx0Bhm1.s 			page 47
+
+
+ 1876              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1877 0000 08B5     		push	{r3, lr}
+ 1878              	.LCFI37:
+ 1879              		.cfi_def_cfa_offset 8
+ 1880              		.cfi_offset 3, -8
+ 1881              		.cfi_offset 14, -4
+  75:Core/Src/ssd1306.c **** 
+ 1882              		.loc 1 75 5 view .LVU438
+ 1883 0002 FFF7FEFF 		bl	ssd1306_Reset
+ 1884              	.LVL203:
+  78:Core/Src/ssd1306.c **** 
+ 1885              		.loc 1 78 5 view .LVU439
+ 1886 0006 6420     		movs	r0, #100
+ 1887 0008 FFF7FEFF 		bl	HAL_Delay
+ 1888              	.LVL204:
+  81:Core/Src/ssd1306.c **** 
+ 1889              		.loc 1 81 5 view .LVU440
+ 1890 000c 0020     		movs	r0, #0
+ 1891 000e FFF7FEFF 		bl	ssd1306_SetDisplayOn
+ 1892              	.LVL205:
+  83:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x00); // 00b,Horizontal Addressing Mode; 01b,Vertical Addressing Mode;
+ 1893              		.loc 1 83 5 view .LVU441
+ 1894 0012 2020     		movs	r0, #32
+ 1895 0014 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1896              	.LVL206:
+  84:Core/Src/ssd1306.c ****                                 // 10b,Page Addressing Mode (RESET); 11b,Invalid
+ 1897              		.loc 1 84 5 view .LVU442
+ 1898 0018 0020     		movs	r0, #0
+ 1899 001a FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1900              	.LVL207:
+  87:Core/Src/ssd1306.c **** 
+ 1901              		.loc 1 87 5 view .LVU443
+ 1902 001e B020     		movs	r0, #176
+ 1903 0020 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1904              	.LVL208:
+  92:Core/Src/ssd1306.c **** #endif
+ 1905              		.loc 1 92 5 view .LVU444
+ 1906 0024 C820     		movs	r0, #200
+ 1907 0026 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1908              	.LVL209:
+  95:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x10); //---set high column address
+ 1909              		.loc 1 95 5 view .LVU445
+ 1910 002a 0020     		movs	r0, #0
+ 1911 002c FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1912              	.LVL210:
+  96:Core/Src/ssd1306.c **** 
+ 1913              		.loc 1 96 5 view .LVU446
+ 1914 0030 1020     		movs	r0, #16
+ 1915 0032 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1916              	.LVL211:
+  98:Core/Src/ssd1306.c **** 
+ 1917              		.loc 1 98 5 view .LVU447
+ 1918 0036 4020     		movs	r0, #64
+ 1919 0038 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1920              	.LVL212:
+ 100:Core/Src/ssd1306.c **** 
+ 1921              		.loc 1 100 5 view .LVU448
+ARM GAS  /tmp/ccx0Bhm1.s 			page 48
+
+
+ 1922 003c FF20     		movs	r0, #255
+ 1923 003e FFF7FEFF 		bl	ssd1306_SetContrast
+ 1924              	.LVL213:
+ 105:Core/Src/ssd1306.c **** #endif
+ 1925              		.loc 1 105 5 view .LVU449
+ 1926 0042 A120     		movs	r0, #161
+ 1927 0044 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1928              	.LVL214:
+ 111:Core/Src/ssd1306.c **** #endif
+ 1929              		.loc 1 111 5 view .LVU450
+ 1930 0048 A620     		movs	r0, #166
+ 1931 004a FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1932              	.LVL215:
+ 119:Core/Src/ssd1306.c **** #endif
+ 1933              		.loc 1 119 5 view .LVU451
+ 1934 004e A820     		movs	r0, #168
+ 1935 0050 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1936              	.LVL216:
+ 125:Core/Src/ssd1306.c **** #elif (SSD1306_HEIGHT == 128)
+ 1937              		.loc 1 125 5 view .LVU452
+ 1938 0054 3F20     		movs	r0, #63
+ 1939 0056 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1940              	.LVL217:
+ 132:Core/Src/ssd1306.c **** 
+ 1941              		.loc 1 132 5 view .LVU453
+ 1942 005a A420     		movs	r0, #164
+ 1943 005c FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1944              	.LVL218:
+ 134:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x00); //-not offset
+ 1945              		.loc 1 134 5 view .LVU454
+ 1946 0060 D320     		movs	r0, #211
+ 1947 0062 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1948              	.LVL219:
+ 135:Core/Src/ssd1306.c **** 
+ 1949              		.loc 1 135 5 view .LVU455
+ 1950 0066 0020     		movs	r0, #0
+ 1951 0068 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1952              	.LVL220:
+ 137:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0xF0); //--set divide ratio
+ 1953              		.loc 1 137 5 view .LVU456
+ 1954 006c D520     		movs	r0, #213
+ 1955 006e FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1956              	.LVL221:
+ 138:Core/Src/ssd1306.c **** 
+ 1957              		.loc 1 138 5 view .LVU457
+ 1958 0072 F020     		movs	r0, #240
+ 1959 0074 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1960              	.LVL222:
+ 140:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x22); //
+ 1961              		.loc 1 140 5 view .LVU458
+ 1962 0078 D920     		movs	r0, #217
+ 1963 007a FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1964              	.LVL223:
+ 141:Core/Src/ssd1306.c **** 
+ 1965              		.loc 1 141 5 view .LVU459
+ 1966 007e 2220     		movs	r0, #34
+ 1967 0080 FFF7FEFF 		bl	ssd1306_WriteCommand
+ARM GAS  /tmp/ccx0Bhm1.s 			page 49
+
+
+ 1968              	.LVL224:
+ 143:Core/Src/ssd1306.c **** #if (SSD1306_HEIGHT == 32)
+ 1969              		.loc 1 143 5 view .LVU460
+ 1970 0084 DA20     		movs	r0, #218
+ 1971 0086 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1972              	.LVL225:
+ 147:Core/Src/ssd1306.c **** #elif (SSD1306_HEIGHT == 128)
+ 1973              		.loc 1 147 5 view .LVU461
+ 1974 008a 1220     		movs	r0, #18
+ 1975 008c FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1976              	.LVL226:
+ 154:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x20); //0x20,0.77xVcc
+ 1977              		.loc 1 154 5 view .LVU462
+ 1978 0090 DB20     		movs	r0, #219
+ 1979 0092 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1980              	.LVL227:
+ 155:Core/Src/ssd1306.c **** 
+ 1981              		.loc 1 155 5 view .LVU463
+ 1982 0096 2020     		movs	r0, #32
+ 1983 0098 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1984              	.LVL228:
+ 157:Core/Src/ssd1306.c ****     ssd1306_WriteCommand(0x14); //
+ 1985              		.loc 1 157 5 view .LVU464
+ 1986 009c 8D20     		movs	r0, #141
+ 1987 009e FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1988              	.LVL229:
+ 158:Core/Src/ssd1306.c ****     ssd1306_SetDisplayOn(1); //--turn on SSD1306 panel
+ 1989              		.loc 1 158 5 view .LVU465
+ 1990 00a2 1420     		movs	r0, #20
+ 1991 00a4 FFF7FEFF 		bl	ssd1306_WriteCommand
+ 1992              	.LVL230:
+ 159:Core/Src/ssd1306.c **** 
+ 1993              		.loc 1 159 5 view .LVU466
+ 1994 00a8 0120     		movs	r0, #1
+ 1995 00aa FFF7FEFF 		bl	ssd1306_SetDisplayOn
+ 1996              	.LVL231:
+ 162:Core/Src/ssd1306.c ****     
+ 1997              		.loc 1 162 5 view .LVU467
+ 1998 00ae 0020     		movs	r0, #0
+ 1999 00b0 FFF7FEFF 		bl	ssd1306_Fill
+ 2000              	.LVL232:
+ 165:Core/Src/ssd1306.c ****     
+ 2001              		.loc 1 165 5 view .LVU468
+ 2002 00b4 FFF7FEFF 		bl	ssd1306_UpdateScreen
+ 2003              	.LVL233:
+ 168:Core/Src/ssd1306.c ****     SSD1306.CurrentY = 0;
+ 2004              		.loc 1 168 5 view .LVU469
+ 168:Core/Src/ssd1306.c ****     SSD1306.CurrentY = 0;
+ 2005              		.loc 1 168 22 is_stmt 0 view .LVU470
+ 2006 00b8 034B     		ldr	r3, .L138
+ 2007 00ba 0022     		movs	r2, #0
+ 2008 00bc 1A80     		strh	r2, [r3]	@ movhi
+ 169:Core/Src/ssd1306.c ****     
+ 2009              		.loc 1 169 5 is_stmt 1 view .LVU471
+ 169:Core/Src/ssd1306.c ****     
+ 2010              		.loc 1 169 22 is_stmt 0 view .LVU472
+ 2011 00be 5A80     		strh	r2, [r3, #2]	@ movhi
+ARM GAS  /tmp/ccx0Bhm1.s 			page 50
+
+
+ 171:Core/Src/ssd1306.c **** }
+ 2012              		.loc 1 171 5 is_stmt 1 view .LVU473
+ 171:Core/Src/ssd1306.c **** }
+ 2013              		.loc 1 171 25 is_stmt 0 view .LVU474
+ 2014 00c0 0122     		movs	r2, #1
+ 2015 00c2 1A71     		strb	r2, [r3, #4]
+ 172:Core/Src/ssd1306.c **** 
+ 2016              		.loc 1 172 1 view .LVU475
+ 2017 00c4 08BD     		pop	{r3, pc}
+ 2018              	.L139:
+ 2019 00c6 00BF     		.align	2
+ 2020              	.L138:
+ 2021 00c8 00000000 		.word	.LANCHOR1
+ 2022              		.cfi_endproc
+ 2023              	.LFE69:
+ 2025              		.section	.text.ssd1306_GetDisplayOn,"ax",%progbits
+ 2026              		.align	1
+ 2027              		.global	ssd1306_GetDisplayOn
+ 2028              		.syntax unified
+ 2029              		.thumb
+ 2030              		.thumb_func
+ 2032              	ssd1306_GetDisplayOn:
+ 2033              	.LFB86:
+ 483:Core/Src/ssd1306.c **** 
+ 484:Core/Src/ssd1306.c **** uint8_t ssd1306_GetDisplayOn() {
+ 2034              		.loc 1 484 32 is_stmt 1 view -0
+ 2035              		.cfi_startproc
+ 2036              		@ args = 0, pretend = 0, frame = 0
+ 2037              		@ frame_needed = 0, uses_anonymous_args = 0
+ 2038              		@ link register save eliminated.
+ 485:Core/Src/ssd1306.c ****     return SSD1306.DisplayOn;
+ 2039              		.loc 1 485 5 view .LVU477
+ 486:Core/Src/ssd1306.c **** }
+ 2040              		.loc 1 486 1 is_stmt 0 view .LVU478
+ 2041 0000 014B     		ldr	r3, .L141
+ 2042 0002 5879     		ldrb	r0, [r3, #5]	@ zero_extendqisi2
+ 2043 0004 7047     		bx	lr
+ 2044              	.L142:
+ 2045 0006 00BF     		.align	2
+ 2046              	.L141:
+ 2047 0008 00000000 		.word	.LANCHOR1
+ 2048              		.cfi_endproc
+ 2049              	.LFE86:
+ 2051              		.section	.bss.SSD1306,"aw",%nobits
+ 2052              		.align	2
+ 2053              		.set	.LANCHOR1,. + 0
+ 2056              	SSD1306:
+ 2057 0000 00000000 		.space	6
+ 2057      0000
+ 2058              		.section	.bss.SSD1306_Buffer,"aw",%nobits
+ 2059              		.align	2
+ 2060              		.set	.LANCHOR0,. + 0
+ 2063              	SSD1306_Buffer:
+ 2064 0000 00000000 		.space	1024
+ 2064      00000000 
+ 2064      00000000 
+ 2064      00000000 
+ARM GAS  /tmp/ccx0Bhm1.s 			page 51
+
+
+ 2064      00000000 
+ 2065              		.text
+ 2066              	.Letext0:
+ 2067              		.file 2 "/home/seradya/toolchains/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/incl
+ 2068              		.file 3 "/home/seradya/toolchains/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_de
+ 2069              		.file 4 "/home/seradya/toolchains/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint
+ 2070              		.file 5 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
+ 2071              		.file 6 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
+ 2072              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h"
+ 2073              		.file 8 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h"
+ 2074              		.file 9 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h"
+ 2075              		.file 10 "Core/Inc/ssd1306_fonts.h"
+ 2076              		.file 11 "Core/Inc/ssd1306.h"
+ 2077              		.file 12 "/home/seradya/toolchains/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/math.h"
+ 2078              		.file 13 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
+ 2079              		.file 14 "<built-in>"
+ARM GAS  /tmp/ccx0Bhm1.s 			page 52
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ssd1306.c
+     /tmp/ccx0Bhm1.s:22     .text.ssd1306_DegToRad:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:27     .text.ssd1306_DegToRad:0000000000000000 ssd1306_DegToRad
+     /tmp/ccx0Bhm1.s:62     .text.ssd1306_DegToRad:0000000000000020 $d
+     /tmp/ccx0Bhm1.s:69     .text.ssd1306_NormalizeTo0_360:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:74     .text.ssd1306_NormalizeTo0_360:0000000000000000 ssd1306_NormalizeTo0_360
+     /tmp/ccx0Bhm1.s:108    .text.ssd1306_Reset:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:114    .text.ssd1306_Reset:0000000000000000 ssd1306_Reset
+     /tmp/ccx0Bhm1.s:157    .text.ssd1306_Reset:0000000000000038 $d
+     /tmp/ccx0Bhm1.s:162    .text.ssd1306_WriteCommand:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:168    .text.ssd1306_WriteCommand:0000000000000000 ssd1306_WriteCommand
+     /tmp/ccx0Bhm1.s:222    .text.ssd1306_WriteCommand:0000000000000044 $d
+     /tmp/ccx0Bhm1.s:228    .text.ssd1306_WriteData:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:234    .text.ssd1306_WriteData:0000000000000000 ssd1306_WriteData
+     /tmp/ccx0Bhm1.s:288    .text.ssd1306_WriteData:000000000000003c $d
+     /tmp/ccx0Bhm1.s:294    .text.ssd1306_FillBuffer:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:300    .text.ssd1306_FillBuffer:0000000000000000 ssd1306_FillBuffer
+     /tmp/ccx0Bhm1.s:346    .text.ssd1306_FillBuffer:000000000000001c $d
+     /tmp/ccx0Bhm1.s:351    .text.ssd1306_Fill:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:357    .text.ssd1306_Fill:0000000000000000 ssd1306_Fill
+     /tmp/ccx0Bhm1.s:400    .text.ssd1306_Fill:000000000000001c $d
+     /tmp/ccx0Bhm1.s:405    .text.ssd1306_UpdateScreen:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:411    .text.ssd1306_UpdateScreen:0000000000000000 ssd1306_UpdateScreen
+     /tmp/ccx0Bhm1.s:471    .text.ssd1306_UpdateScreen:0000000000000034 $d
+     /tmp/ccx0Bhm1.s:476    .text.ssd1306_DrawPixel:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:482    .text.ssd1306_DrawPixel:0000000000000000 ssd1306_DrawPixel
+     /tmp/ccx0Bhm1.s:546    .text.ssd1306_DrawPixel:0000000000000040 $d
+     /tmp/ccx0Bhm1.s:551    .text.ssd1306_WriteChar:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:557    .text.ssd1306_WriteChar:0000000000000000 ssd1306_WriteChar
+     /tmp/ccx0Bhm1.s:727    .text.ssd1306_WriteChar:00000000000000ac $d
+     /tmp/ccx0Bhm1.s:732    .text.ssd1306_WriteString:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:738    .text.ssd1306_WriteString:0000000000000000 ssd1306_WriteString
+     /tmp/ccx0Bhm1.s:801    .text.ssd1306_SetCursor:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:807    .text.ssd1306_SetCursor:0000000000000000 ssd1306_SetCursor
+     /tmp/ccx0Bhm1.s:827    .text.ssd1306_SetCursor:0000000000000008 $d
+     /tmp/ccx0Bhm1.s:832    .text.ssd1306_Line:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:838    .text.ssd1306_Line:0000000000000000 ssd1306_Line
+     /tmp/ccx0Bhm1.s:1006   .text.ssd1306_Polyline:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:1012   .text.ssd1306_Polyline:0000000000000000 ssd1306_Polyline
+     /tmp/ccx0Bhm1.s:1103   .text.ssd1306_DrawArc:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:1109   .text.ssd1306_DrawArc:0000000000000000 ssd1306_DrawArc
+     /tmp/ccx0Bhm1.s:1359   .text.ssd1306_DrawArc:0000000000000138 $d
+     /tmp/ccx0Bhm1.s:1365   .text.ssd1306_DrawCircle:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:1371   .text.ssd1306_DrawCircle:0000000000000000 ssd1306_DrawCircle
+     /tmp/ccx0Bhm1.s:1538   .text.ssd1306_DrawRectangle:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:1544   .text.ssd1306_DrawRectangle:0000000000000000 ssd1306_DrawRectangle
+     /tmp/ccx0Bhm1.s:1612   .text.ssd1306_DrawBitmap:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:1618   .text.ssd1306_DrawBitmap:0000000000000000 ssd1306_DrawBitmap
+     /tmp/ccx0Bhm1.s:1767   .text.ssd1306_SetContrast:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:1773   .text.ssd1306_SetContrast:0000000000000000 ssd1306_SetContrast
+     /tmp/ccx0Bhm1.s:1805   .text.ssd1306_SetDisplayOn:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:1811   .text.ssd1306_SetDisplayOn:0000000000000000 ssd1306_SetDisplayOn
+     /tmp/ccx0Bhm1.s:1860   .text.ssd1306_SetDisplayOn:000000000000001c $d
+     /tmp/ccx0Bhm1.s:1865   .text.ssd1306_Init:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:1871   .text.ssd1306_Init:0000000000000000 ssd1306_Init
+     /tmp/ccx0Bhm1.s:2021   .text.ssd1306_Init:00000000000000c8 $d
+ARM GAS  /tmp/ccx0Bhm1.s 			page 53
+
+
+     /tmp/ccx0Bhm1.s:2026   .text.ssd1306_GetDisplayOn:0000000000000000 $t
+     /tmp/ccx0Bhm1.s:2032   .text.ssd1306_GetDisplayOn:0000000000000000 ssd1306_GetDisplayOn
+     /tmp/ccx0Bhm1.s:2047   .text.ssd1306_GetDisplayOn:0000000000000008 $d
+     /tmp/ccx0Bhm1.s:2052   .bss.SSD1306:0000000000000000 $d
+     /tmp/ccx0Bhm1.s:2056   .bss.SSD1306:0000000000000000 SSD1306
+     /tmp/ccx0Bhm1.s:2059   .bss.SSD1306_Buffer:0000000000000000 $d
+     /tmp/ccx0Bhm1.s:2063   .bss.SSD1306_Buffer:0000000000000000 SSD1306_Buffer
+
+UNDEFINED SYMBOLS
+__aeabi_f2d
+__aeabi_dmul
+__aeabi_ddiv
+__aeabi_d2f
+HAL_GPIO_WritePin
+HAL_Delay
+HAL_SPI_Transmit
+hspi2
+memcpy
+__aeabi_ui2f
+__aeabi_fdiv
+__aeabi_fmul
+__aeabi_i2d
+__aeabi_d2iz
+sin
+cos

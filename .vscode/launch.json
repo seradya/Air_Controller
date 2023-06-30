@@ -1,0 +1,63 @@
+{
+    "version": "0.12.0",
+    "configurations": [
+        {
+            "name": "Cortex Debug",
+            "cwd": "${workspaceRoot}",
+            "executable": "build/AirController.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "runToEntryPoint": "main",
+            "preLaunchTask": "build",
+            "device": "STM32F103C8",
+            "svdFile": "${workspaceRoot}/STM32F0_svd_V1.3/STM32F103.svd",
+            "showDevDebugOutput": "raw",
+            "configFiles": [
+                "/home/seradya/Documents/STM32_Projects/OpenOCD/openocd-master/tcl/interface/stlink-v2-1.cfg",
+                //"/STMtarget/stm32f1x.cfg"
+                "/home/seradya/Documents/STM32_Projects/OpenOCD/openocd-master/tcl/target/stm32f1x.cfg"
+            ],
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 8000000,
+                "swoFrequency": 2000000,
+                "source": "probe",
+                "decoders": [
+                    {
+                        "type": "console",
+                        "label": "ITM",
+                        "port": 0
+                    }
+                ]
+            }
+        },
+        {
+            "name": "C/C++: arm-none-eabi-gcc build and debug active file",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${fileDirname}/${fileBasenameNoExtension}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "C/C++: arm-none-eabi-gcc build active file",
+            "miDebuggerPath": "gdb"
+            
+        }
+    ]
+}

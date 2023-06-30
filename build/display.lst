@@ -1,0 +1,396 @@
+ARM GAS  /tmp/ccJcbMW1.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.arch armv7-m
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"display.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.Display_Init,"ax",%progbits
+  18              		.align	1
+  19              		.global	Display_Init
+  20              		.syntax unified
+  21              		.thumb
+  22              		.thumb_func
+  24              	Display_Init:
+  25              	.LFB68:
+  26              		.file 1 "Core/Src/display.c"
+   1:Core/Src/display.c **** #include <display.h>
+   2:Core/Src/display.c **** #include <stdio.h>
+   3:Core/Src/display.c **** #include <string.h>
+   4:Core/Src/display.c **** 
+   5:Core/Src/display.c **** extern uint32_t pressure[4];
+   6:Core/Src/display.c **** //extern uint8_t buf1[5] = {0};
+   7:Core/Src/display.c ****  uint16_t i=1,retr_cnt_full=0;
+   8:Core/Src/display.c **** 
+   9:Core/Src/display.c **** void Display_Init(void) {
+  27              		.loc 1 9 25 view -0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31 0000 08B5     		push	{r3, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 3, -8
+  35              		.cfi_offset 14, -4
+  10:Core/Src/display.c **** 	//HAL_GPIO_WritePin(SPI_Led_GPIO_Port, SPI_Led_Pin, GPIO_PIN_RESET);
+  11:Core/Src/display.c **** 	//HAL_GPIO_WritePin(I2C_Led_GPIO_Port, I2C_Led_Pin, GPIO_PIN_RESET);
+  12:Core/Src/display.c **** 	ssd1306_Init();
+  36              		.loc 1 12 2 view .LVU1
+  37 0002 FFF7FEFF 		bl	ssd1306_Init
+  38              	.LVL0:
+  13:Core/Src/display.c **** 
+  14:Core/Src/display.c **** 	//ssd1306_UpdateScreen();
+  15:Core/Src/display.c **** }
+  39              		.loc 1 15 1 is_stmt 0 view .LVU2
+  40 0006 08BD     		pop	{r3, pc}
+  41              		.cfi_endproc
+  42              	.LFE68:
+  44              		.global	__aeabi_ui2d
+ARM GAS  /tmp/ccJcbMW1.s 			page 2
+
+
+  45              		.global	__aeabi_ddiv
+  46              		.global	__aeabi_d2f
+  47              		.global	__aeabi_f2d
+  48              		.section	.rodata.Main_Screen.str1.4,"aMS",%progbits,1
+  49              		.align	2
+  50              	.LC0:
+  51 0000 25312E33 		.ascii	"%1.3f\000"
+  51      6600
+  52 0006 0000     		.align	2
+  53              	.LC1:
+  54 0008 256400   		.ascii	"%d\000"
+  55 000b 00       		.align	2
+  56              	.LC2:
+  57 000c 20202020 		.ascii	"             \000"
+  57      20202020 
+  57      20202020 
+  57      2000
+  58 001a 0000     		.align	2
+  59              	.LC3:
+  60 001c 20202020 		.ascii	"     \000"
+  60      2000
+  61              		.section	.text.Main_Screen,"ax",%progbits
+  62              		.align	1
+  63              		.global	Main_Screen
+  64              		.syntax unified
+  65              		.thumb
+  66              		.thumb_func
+  68              	Main_Screen:
+  69              	.LFB69:
+  16:Core/Src/display.c **** 
+  17:Core/Src/display.c **** void Main_Screen(void) {
+  70              		.loc 1 17 24 is_stmt 1 view -0
+  71              		.cfi_startproc
+  72              		@ args = 0, pretend = 0, frame = 104
+  73              		@ frame_needed = 0, uses_anonymous_args = 0
+  74 0000 30B5     		push	{r4, r5, lr}
+  75              	.LCFI1:
+  76              		.cfi_def_cfa_offset 12
+  77              		.cfi_offset 4, -12
+  78              		.cfi_offset 5, -8
+  79              		.cfi_offset 14, -4
+  80 0002 9DB0     		sub	sp, sp, #116
+  81              	.LCFI2:
+  82              		.cfi_def_cfa_offset 128
+  18:Core/Src/display.c **** 	uint8_t x = 1, y = 10;
+  83              		.loc 1 18 2 view .LVU4
+  84              	.LVL1:
+  19:Core/Src/display.c **** 
+  20:Core/Src/display.c **** 	char ps1[32];
+  85              		.loc 1 20 2 view .LVU5
+  21:Core/Src/display.c **** 	char ps2[5];
+  86              		.loc 1 21 2 view .LVU6
+  22:Core/Src/display.c **** 	char ps3[32];
+  87              		.loc 1 22 2 view .LVU7
+  23:Core/Src/display.c **** 	char ps4[32];
+  88              		.loc 1 23 2 view .LVU8
+  24:Core/Src/display.c **** 	//char ps4[64];
+ARM GAS  /tmp/ccJcbMW1.s 			page 3
+
+
+  25:Core/Src/display.c **** 	//for(int i = 0; i < 4; i++)
+  26:Core/Src/display.c **** 	//float press1 = (pressure[0] / 101312000);
+  27:Core/Src/display.c **** 	float press2 = (float)(pressure[1] / 133.32);
+  89              		.loc 1 27 2 view .LVU9
+  90              		.loc 1 27 33 is_stmt 0 view .LVU10
+  91 0004 464D     		ldr	r5, .L5+8
+  92              		.loc 1 27 37 view .LVU11
+  93 0006 6868     		ldr	r0, [r5, #4]
+  94 0008 FFF7FEFF 		bl	__aeabi_ui2d
+  95              	.LVL2:
+  96 000c 42A3     		adr	r3, .L5
+  97 000e D3E90023 		ldrd	r2, [r3]
+  98 0012 FFF7FEFF 		bl	__aeabi_ddiv
+  99              	.LVL3:
+ 100              		.loc 1 27 8 view .LVU12
+ 101 0016 FFF7FEFF 		bl	__aeabi_d2f
+ 102              	.LVL4:
+  28:Core/Src/display.c **** 	//sprintf(ps1, "%1.3f", press1);
+  29:Core/Src/display.c **** 	sprintf(ps2, "%1.3f", press2);
+ 103              		.loc 1 29 2 is_stmt 1 view .LVU13
+ 104 001a FFF7FEFF 		bl	__aeabi_f2d
+ 105              	.LVL5:
+ 106              		.loc 1 29 2 is_stmt 0 view .LVU14
+ 107 001e 0246     		mov	r2, r0
+ 108 0020 0B46     		mov	r3, r1
+ 109 0022 4049     		ldr	r1, .L5+12
+ 110 0024 12A8     		add	r0, sp, #72
+ 111 0026 FFF7FEFF 		bl	sprintf
+ 112              	.LVL6:
+  30:Core/Src/display.c **** 	sprintf(ps1, "%d", pressure[1]);
+ 113              		.loc 1 30 2 is_stmt 1 view .LVU15
+ 114 002a 3F4C     		ldr	r4, .L5+16
+ 115 002c 6A68     		ldr	r2, [r5, #4]
+ 116 002e 2146     		mov	r1, r4
+ 117 0030 14A8     		add	r0, sp, #80
+ 118 0032 FFF7FEFF 		bl	sprintf
+ 119              	.LVL7:
+  31:Core/Src/display.c **** 	sprintf(ps3, "%d", i);
+ 120              		.loc 1 31 2 view .LVU16
+ 121 0036 3D4B     		ldr	r3, .L5+20
+ 122 0038 1A88     		ldrh	r2, [r3]
+ 123 003a 2146     		mov	r1, r4
+ 124 003c 0AA8     		add	r0, sp, #40
+ 125 003e FFF7FEFF 		bl	sprintf
+ 126              	.LVL8:
+  32:Core/Src/display.c **** 	sprintf(ps4, "%d", retr_cnt_full);
+ 127              		.loc 1 32 2 view .LVU17
+ 128 0042 3B4B     		ldr	r3, .L5+24
+ 129 0044 1A88     		ldrh	r2, [r3]
+ 130 0046 2146     		mov	r1, r4
+ 131 0048 02A8     		add	r0, sp, #8
+ 132 004a FFF7FEFF 		bl	sprintf
+ 133              	.LVL9:
+  33:Core/Src/display.c **** 	//sprintf(ps2, "%d", pressure[1]);
+  34:Core/Src/display.c **** 	ssd1306_SetCursor(x, y);
+ 134              		.loc 1 34 2 view .LVU18
+ 135 004e 0A21     		movs	r1, #10
+ARM GAS  /tmp/ccJcbMW1.s 			page 4
+
+
+ 136 0050 0120     		movs	r0, #1
+ 137 0052 FFF7FEFF 		bl	ssd1306_SetCursor
+ 138              	.LVL10:
+  35:Core/Src/display.c **** 	ssd1306_WriteString("             ", Font_11x18, White);
+ 139              		.loc 1 35 2 view .LVU19
+ 140 0056 374C     		ldr	r4, .L5+28
+ 141 0058 0123     		movs	r3, #1
+ 142 005a 94E80600 		ldm	r4, {r1, r2}
+ 143 005e 3648     		ldr	r0, .L5+32
+ 144 0060 FFF7FEFF 		bl	ssd1306_WriteString
+ 145              	.LVL11:
+  36:Core/Src/display.c **** 	ssd1306_SetCursor(x, y);
+ 146              		.loc 1 36 2 view .LVU20
+ 147 0064 0A21     		movs	r1, #10
+ 148 0066 0120     		movs	r0, #1
+ 149 0068 FFF7FEFF 		bl	ssd1306_SetCursor
+ 150              	.LVL12:
+  37:Core/Src/display.c **** 	ssd1306_WriteString(ps1, Font_11x18, White);
+ 151              		.loc 1 37 2 view .LVU21
+ 152 006c 0123     		movs	r3, #1
+ 153 006e 94E80600 		ldm	r4, {r1, r2}
+ 154 0072 14A8     		add	r0, sp, #80
+ 155 0074 FFF7FEFF 		bl	ssd1306_WriteString
+ 156              	.LVL13:
+  38:Core/Src/display.c **** 	x += SSD1306_WIDTH/2 + 3;
+ 157              		.loc 1 38 2 view .LVU22
+  39:Core/Src/display.c **** 	ssd1306_SetCursor(x, y);
+ 158              		.loc 1 39 2 view .LVU23
+ 159 0078 0A21     		movs	r1, #10
+ 160 007a 4420     		movs	r0, #68
+ 161 007c FFF7FEFF 		bl	ssd1306_SetCursor
+ 162              	.LVL14:
+  40:Core/Src/display.c **** 	ssd1306_WriteString("     ", Font_11x18, White);
+ 163              		.loc 1 40 2 view .LVU24
+ 164 0080 2E4D     		ldr	r5, .L5+36
+ 165 0082 0123     		movs	r3, #1
+ 166 0084 94E80600 		ldm	r4, {r1, r2}
+ 167 0088 2846     		mov	r0, r5
+ 168 008a FFF7FEFF 		bl	ssd1306_WriteString
+ 169              	.LVL15:
+  41:Core/Src/display.c **** 	ssd1306_SetCursor(x, y);
+ 170              		.loc 1 41 2 view .LVU25
+ 171 008e 0A21     		movs	r1, #10
+ 172 0090 4420     		movs	r0, #68
+ 173 0092 FFF7FEFF 		bl	ssd1306_SetCursor
+ 174              	.LVL16:
+  42:Core/Src/display.c **** 	ssd1306_WriteString(ps2, Font_11x18, White);
+ 175              		.loc 1 42 2 view .LVU26
+ 176 0096 0123     		movs	r3, #1
+ 177 0098 94E80600 		ldm	r4, {r1, r2}
+ 178 009c 12A8     		add	r0, sp, #72
+ 179 009e FFF7FEFF 		bl	ssd1306_WriteString
+ 180              	.LVL17:
+  43:Core/Src/display.c **** 	y += SSD1306_HEIGHT/2;
+ 181              		.loc 1 43 2 view .LVU27
+  44:Core/Src/display.c **** 	ssd1306_SetCursor(x, y);
+ 182              		.loc 1 44 2 view .LVU28
+ARM GAS  /tmp/ccJcbMW1.s 			page 5
+
+
+ 183 00a2 2A21     		movs	r1, #42
+ 184 00a4 4420     		movs	r0, #68
+ 185 00a6 FFF7FEFF 		bl	ssd1306_SetCursor
+ 186              	.LVL18:
+  45:Core/Src/display.c **** 	ssd1306_WriteString("     ", Font_11x18, White);
+ 187              		.loc 1 45 2 view .LVU29
+ 188 00aa 0123     		movs	r3, #1
+ 189 00ac 94E80600 		ldm	r4, {r1, r2}
+ 190 00b0 2846     		mov	r0, r5
+ 191 00b2 FFF7FEFF 		bl	ssd1306_WriteString
+ 192              	.LVL19:
+  46:Core/Src/display.c **** 	ssd1306_SetCursor(x, y);
+ 193              		.loc 1 46 2 view .LVU30
+ 194 00b6 2A21     		movs	r1, #42
+ 195 00b8 4420     		movs	r0, #68
+ 196 00ba FFF7FEFF 		bl	ssd1306_SetCursor
+ 197              	.LVL20:
+  47:Core/Src/display.c **** 	ssd1306_WriteString(ps4, Font_11x18, White);
+ 198              		.loc 1 47 2 view .LVU31
+ 199 00be 0123     		movs	r3, #1
+ 200 00c0 94E80600 		ldm	r4, {r1, r2}
+ 201 00c4 02A8     		add	r0, sp, #8
+ 202 00c6 FFF7FEFF 		bl	ssd1306_WriteString
+ 203              	.LVL21:
+  48:Core/Src/display.c **** 	x -= SSD1306_WIDTH/2 + 3;
+ 204              		.loc 1 48 2 view .LVU32
+  49:Core/Src/display.c **** 	ssd1306_SetCursor(x, y);
+ 205              		.loc 1 49 2 view .LVU33
+ 206 00ca 2A21     		movs	r1, #42
+ 207 00cc 0120     		movs	r0, #1
+ 208 00ce FFF7FEFF 		bl	ssd1306_SetCursor
+ 209              	.LVL22:
+  50:Core/Src/display.c **** 	ssd1306_WriteString("     ", Font_11x18, White);
+ 210              		.loc 1 50 2 view .LVU34
+ 211 00d2 0123     		movs	r3, #1
+ 212 00d4 94E80600 		ldm	r4, {r1, r2}
+ 213 00d8 2846     		mov	r0, r5
+ 214 00da FFF7FEFF 		bl	ssd1306_WriteString
+ 215              	.LVL23:
+  51:Core/Src/display.c **** 	ssd1306_SetCursor(x, y);
+ 216              		.loc 1 51 2 view .LVU35
+ 217 00de 2A21     		movs	r1, #42
+ 218 00e0 0120     		movs	r0, #1
+ 219 00e2 FFF7FEFF 		bl	ssd1306_SetCursor
+ 220              	.LVL24:
+  52:Core/Src/display.c **** 	ssd1306_WriteString(ps3, Font_11x18, White);
+ 221              		.loc 1 52 2 view .LVU36
+ 222 00e6 0123     		movs	r3, #1
+ 223 00e8 94E80600 		ldm	r4, {r1, r2}
+ 224 00ec 0AA8     		add	r0, sp, #40
+ 225 00ee FFF7FEFF 		bl	ssd1306_WriteString
+ 226              	.LVL25:
+  53:Core/Src/display.c **** 
+  54:Core/Src/display.c **** 	ssd1306_Line(SSD1306_WIDTH/2,0,SSD1306_WIDTH/2,SSD1306_HEIGHT,White);
+ 227              		.loc 1 54 2 view .LVU37
+ 228 00f2 0124     		movs	r4, #1
+ 229 00f4 0094     		str	r4, [sp]
+ARM GAS  /tmp/ccJcbMW1.s 			page 6
+
+
+ 230 00f6 4023     		movs	r3, #64
+ 231 00f8 1A46     		mov	r2, r3
+ 232 00fa 0021     		movs	r1, #0
+ 233 00fc 1846     		mov	r0, r3
+ 234 00fe FFF7FEFF 		bl	ssd1306_Line
+ 235              	.LVL26:
+  55:Core/Src/display.c **** 	ssd1306_Line(0,SSD1306_HEIGHT/2,SSD1306_WIDTH,SSD1306_HEIGHT/2,White);
+ 236              		.loc 1 55 2 view .LVU38
+ 237 0102 0094     		str	r4, [sp]
+ 238 0104 2023     		movs	r3, #32
+ 239 0106 8022     		movs	r2, #128
+ 240 0108 1946     		mov	r1, r3
+ 241 010a 0020     		movs	r0, #0
+ 242 010c FFF7FEFF 		bl	ssd1306_Line
+ 243              	.LVL27:
+  56:Core/Src/display.c **** 
+  57:Core/Src/display.c **** 	ssd1306_UpdateScreen();
+ 244              		.loc 1 57 2 view .LVU39
+ 245 0110 FFF7FEFF 		bl	ssd1306_UpdateScreen
+ 246              	.LVL28:
+  58:Core/Src/display.c **** }
+ 247              		.loc 1 58 1 is_stmt 0 view .LVU40
+ 248 0114 1DB0     		add	sp, sp, #116
+ 249              	.LCFI3:
+ 250              		.cfi_def_cfa_offset 12
+ 251              		@ sp needed
+ 252 0116 30BD     		pop	{r4, r5, pc}
+ 253              	.L6:
+ 254              		.align	3
+ 255              	.L5:
+ 256 0118 0AD7A370 		.word	1889785610
+ 257 011c 3DAA6040 		.word	1080076861
+ 258 0120 00000000 		.word	pressure
+ 259 0124 00000000 		.word	.LC0
+ 260 0128 08000000 		.word	.LC1
+ 261 012c 00000000 		.word	.LANCHOR0
+ 262 0130 00000000 		.word	.LANCHOR1
+ 263 0134 00000000 		.word	Font_11x18
+ 264 0138 0C000000 		.word	.LC2
+ 265 013c 1C000000 		.word	.LC3
+ 266              		.cfi_endproc
+ 267              	.LFE69:
+ 269              		.global	retr_cnt_full
+ 270              		.global	i
+ 271              		.section	.bss.retr_cnt_full,"aw",%nobits
+ 272              		.align	1
+ 273              		.set	.LANCHOR1,. + 0
+ 276              	retr_cnt_full:
+ 277 0000 0000     		.space	2
+ 278              		.section	.data.i,"aw"
+ 279              		.align	1
+ 280              		.set	.LANCHOR0,. + 0
+ 283              	i:
+ 284 0000 0100     		.short	1
+ 285              		.text
+ 286              	.Letext0:
+ 287              		.file 2 "/home/seradya/toolchains/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_de
+ARM GAS  /tmp/ccJcbMW1.s 			page 7
+
+
+ 288              		.file 3 "/home/seradya/toolchains/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint
+ 289              		.file 4 "Core/Inc/ssd1306_fonts.h"
+ 290              		.file 5 "/home/seradya/toolchains/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/stdio.h"
+ 291              		.file 6 "Core/Inc/ssd1306.h"
+ARM GAS  /tmp/ccJcbMW1.s 			page 8
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 display.c
+     /tmp/ccJcbMW1.s:18     .text.Display_Init:0000000000000000 $t
+     /tmp/ccJcbMW1.s:24     .text.Display_Init:0000000000000000 Display_Init
+     /tmp/ccJcbMW1.s:49     .rodata.Main_Screen.str1.4:0000000000000000 $d
+     /tmp/ccJcbMW1.s:62     .text.Main_Screen:0000000000000000 $t
+     /tmp/ccJcbMW1.s:68     .text.Main_Screen:0000000000000000 Main_Screen
+     /tmp/ccJcbMW1.s:256    .text.Main_Screen:0000000000000118 $d
+     /tmp/ccJcbMW1.s:276    .bss.retr_cnt_full:0000000000000000 retr_cnt_full
+     /tmp/ccJcbMW1.s:283    .data.i:0000000000000000 i
+     /tmp/ccJcbMW1.s:272    .bss.retr_cnt_full:0000000000000000 $d
+     /tmp/ccJcbMW1.s:279    .data.i:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+ssd1306_Init
+__aeabi_ui2d
+__aeabi_ddiv
+__aeabi_d2f
+__aeabi_f2d
+sprintf
+ssd1306_SetCursor
+ssd1306_WriteString
+ssd1306_Line
+ssd1306_UpdateScreen
+pressure
+Font_11x18
