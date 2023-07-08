@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccLQj39T.s 			page 1
+ARM GAS  /tmp/ccmWWXfw.s 			page 1
 
 
    1              		.cpu cortex-m3
@@ -58,7 +58,7 @@ ARM GAS  /tmp/ccLQj39T.s 			page 1
   30:Core/Src/spi.c **** 
   31:Core/Src/spi.c **** /* SPI1 init function */
   32:Core/Src/spi.c **** void MX_SPI1_Init(void)
-ARM GAS  /tmp/ccLQj39T.s 			page 2
+ARM GAS  /tmp/ccmWWXfw.s 			page 2
 
 
   33:Core/Src/spi.c **** {
@@ -118,7 +118,7 @@ ARM GAS  /tmp/ccLQj39T.s 			page 1
   64 001e 2022     		movs	r2, #32
   65 0020 C261     		str	r2, [r0, #28]
   50:Core/Src/spi.c ****   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-ARM GAS  /tmp/ccLQj39T.s 			page 3
+ARM GAS  /tmp/ccmWWXfw.s 			page 3
 
 
   66              		.loc 1 50 3 is_stmt 1 view .LVU17
@@ -178,7 +178,7 @@ ARM GAS  /tmp/ccLQj39T.s 			page 1
  109              	MX_SPI2_Init:
  110              	.LFB69:
   63:Core/Src/spi.c **** /* SPI2 init function */
-ARM GAS  /tmp/ccLQj39T.s 			page 4
+ARM GAS  /tmp/ccmWWXfw.s 			page 4
 
 
   64:Core/Src/spi.c **** void MX_SPI2_Init(void)
@@ -238,7 +238,7 @@ ARM GAS  /tmp/ccLQj39T.s 			page 1
  147              		.loc 1 81 3 is_stmt 1 view .LVU46
  148              		.loc 1 81 32 is_stmt 0 view .LVU47
  149 0022 0822     		movs	r2, #8
-ARM GAS  /tmp/ccLQj39T.s 			page 5
+ARM GAS  /tmp/ccmWWXfw.s 			page 5
 
 
  150 0024 C261     		str	r2, [r0, #28]
@@ -298,7 +298,7 @@ ARM GAS  /tmp/ccLQj39T.s 			page 1
  191              		.thumb
  192              		.thumb_func
  194              	HAL_SPI_MspInit:
-ARM GAS  /tmp/ccLQj39T.s 			page 6
+ARM GAS  /tmp/ccmWWXfw.s 			page 6
 
 
  195              	.LVL4:
@@ -358,7 +358,7 @@ ARM GAS  /tmp/ccLQj39T.s 			page 1
  119:Core/Src/spi.c ****     GPIO_InitStruct.Pin = GPIO_PIN_6;
  120:Core/Src/spi.c ****     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
  121:Core/Src/spi.c ****     GPIO_InitStruct.Pull = GPIO_NOPULL;
-ARM GAS  /tmp/ccLQj39T.s 			page 7
+ARM GAS  /tmp/ccmWWXfw.s 			page 7
 
 
  122:Core/Src/spi.c ****     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -418,7 +418,7 @@ ARM GAS  /tmp/ccLQj39T.s 			page 1
  233 001e 08B0     		add	sp, sp, #32
  234              	.LCFI4:
  235              		.cfi_remember_state
-ARM GAS  /tmp/ccLQj39T.s 			page 8
+ARM GAS  /tmp/ccmWWXfw.s 			page 8
 
 
  236              		.cfi_def_cfa_offset 8
@@ -478,7 +478,7 @@ ARM GAS  /tmp/ccLQj39T.s 			page 1
  276 0048 A023     		movs	r3, #160
  277 004a 0493     		str	r3, [sp, #16]
  115:Core/Src/spi.c ****     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-ARM GAS  /tmp/ccLQj39T.s 			page 9
+ARM GAS  /tmp/ccmWWXfw.s 			page 9
 
 
  278              		.loc 1 115 5 is_stmt 1 view .LVU86
@@ -538,7 +538,7 @@ ARM GAS  /tmp/ccLQj39T.s 			page 1
  317 0072 1C4B     		ldr	r3, .L21+8
  318 0074 DA69     		ldr	r2, [r3, #28]
  319 0076 42F48042 		orr	r2, r2, #16384
-ARM GAS  /tmp/ccLQj39T.s 			page 10
+ARM GAS  /tmp/ccmWWXfw.s 			page 10
 
 
  320 007a DA61     		str	r2, [r3, #28]
@@ -598,7 +598,7 @@ ARM GAS  /tmp/ccLQj39T.s 			page 1
  358 00a8 1048     		ldr	r0, .L21+16
  359              	.LVL11:
  144:Core/Src/spi.c **** 
-ARM GAS  /tmp/ccLQj39T.s 			page 11
+ARM GAS  /tmp/ccmWWXfw.s 			page 11
 
 
  360              		.loc 1 144 5 is_stmt 0 view .LVU118
@@ -658,7 +658,7 @@ ARM GAS  /tmp/ccLQj39T.s 			page 1
  156:Core/Src/spi.c ****     {
  396              		.loc 1 156 8 view .LVU137
  397 00cc 18B9     		cbnz	r0, .L20
-ARM GAS  /tmp/ccLQj39T.s 			page 12
+ARM GAS  /tmp/ccmWWXfw.s 			page 12
 
 
  398              	.L16:
@@ -718,7 +718,7 @@ ARM GAS  /tmp/ccLQj39T.s 			page 1
  171:Core/Src/spi.c **** 
  172:Core/Src/spi.c ****   if(spiHandle->Instance==SPI1)
  446              		.loc 1 172 3 is_stmt 1 view .LVU146
-ARM GAS  /tmp/ccLQj39T.s 			page 13
+ARM GAS  /tmp/ccmWWXfw.s 			page 13
 
 
  447              		.loc 1 172 15 is_stmt 0 view .LVU147
@@ -778,7 +778,7 @@ ARM GAS  /tmp/ccLQj39T.s 			page 1
  462 0012 10BD     		pop	{r4, pc}
  463              	.LVL17:
  464              	.L27:
-ARM GAS  /tmp/ccLQj39T.s 			page 14
+ARM GAS  /tmp/ccmWWXfw.s 			page 14
 
 
  178:Core/Src/spi.c **** 
@@ -838,7 +838,7 @@ ARM GAS  /tmp/ccLQj39T.s 			page 1
  513              		.set	.LANCHOR2,. + 0
  516              	hdma_spi2_tx:
  517 0000 00000000 		.space	68
-ARM GAS  /tmp/ccLQj39T.s 			page 15
+ARM GAS  /tmp/ccmWWXfw.s 			page 15
 
 
  517      00000000 
@@ -875,29 +875,29 @@ ARM GAS  /tmp/ccLQj39T.s 			page 1
  541              		.file 9 "Core/Inc/ssd1306.h"
  542              		.file 10 "Core/Inc/spi.h"
  543              		.file 11 "Core/Inc/main.h"
-ARM GAS  /tmp/ccLQj39T.s 			page 16
+ARM GAS  /tmp/ccmWWXfw.s 			page 16
 
 
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 spi.c
-     /tmp/ccLQj39T.s:18     .text.MX_SPI1_Init:0000000000000000 $t
-     /tmp/ccLQj39T.s:24     .text.MX_SPI1_Init:0000000000000000 MX_SPI1_Init
-     /tmp/ccLQj39T.s:97     .text.MX_SPI1_Init:000000000000003c $d
-     /tmp/ccLQj39T.s:103    .text.MX_SPI2_Init:0000000000000000 $t
-     /tmp/ccLQj39T.s:109    .text.MX_SPI2_Init:0000000000000000 MX_SPI2_Init
-     /tmp/ccLQj39T.s:182    .text.MX_SPI2_Init:0000000000000040 $d
-     /tmp/ccLQj39T.s:188    .text.HAL_SPI_MspInit:0000000000000000 $t
-     /tmp/ccLQj39T.s:194    .text.HAL_SPI_MspInit:0000000000000000 HAL_SPI_MspInit
-     /tmp/ccLQj39T.s:416    .text.HAL_SPI_MspInit:00000000000000dc $d
-     /tmp/ccLQj39T.s:427    .text.HAL_SPI_MspDeInit:0000000000000000 $t
-     /tmp/ccLQj39T.s:433    .text.HAL_SPI_MspDeInit:0000000000000000 HAL_SPI_MspDeInit
-     /tmp/ccLQj39T.s:501    .text.HAL_SPI_MspDeInit:0000000000000048 $d
-     /tmp/ccLQj39T.s:516    .bss.hdma_spi2_tx:0000000000000000 hdma_spi2_tx
-     /tmp/ccLQj39T.s:530    .bss.hspi2:0000000000000000 hspi2
-     /tmp/ccLQj39T.s:523    .bss.hspi1:0000000000000000 hspi1
-     /tmp/ccLQj39T.s:512    .bss.hdma_spi2_tx:0000000000000000 $d
-     /tmp/ccLQj39T.s:519    .bss.hspi1:0000000000000000 $d
-     /tmp/ccLQj39T.s:526    .bss.hspi2:0000000000000000 $d
+     /tmp/ccmWWXfw.s:18     .text.MX_SPI1_Init:0000000000000000 $t
+     /tmp/ccmWWXfw.s:24     .text.MX_SPI1_Init:0000000000000000 MX_SPI1_Init
+     /tmp/ccmWWXfw.s:97     .text.MX_SPI1_Init:000000000000003c $d
+     /tmp/ccmWWXfw.s:103    .text.MX_SPI2_Init:0000000000000000 $t
+     /tmp/ccmWWXfw.s:109    .text.MX_SPI2_Init:0000000000000000 MX_SPI2_Init
+     /tmp/ccmWWXfw.s:182    .text.MX_SPI2_Init:0000000000000040 $d
+     /tmp/ccmWWXfw.s:188    .text.HAL_SPI_MspInit:0000000000000000 $t
+     /tmp/ccmWWXfw.s:194    .text.HAL_SPI_MspInit:0000000000000000 HAL_SPI_MspInit
+     /tmp/ccmWWXfw.s:416    .text.HAL_SPI_MspInit:00000000000000dc $d
+     /tmp/ccmWWXfw.s:427    .text.HAL_SPI_MspDeInit:0000000000000000 $t
+     /tmp/ccmWWXfw.s:433    .text.HAL_SPI_MspDeInit:0000000000000000 HAL_SPI_MspDeInit
+     /tmp/ccmWWXfw.s:501    .text.HAL_SPI_MspDeInit:0000000000000048 $d
+     /tmp/ccmWWXfw.s:516    .bss.hdma_spi2_tx:0000000000000000 hdma_spi2_tx
+     /tmp/ccmWWXfw.s:530    .bss.hspi2:0000000000000000 hspi2
+     /tmp/ccmWWXfw.s:523    .bss.hspi1:0000000000000000 hspi1
+     /tmp/ccmWWXfw.s:512    .bss.hdma_spi2_tx:0000000000000000 $d
+     /tmp/ccmWWXfw.s:519    .bss.hspi1:0000000000000000 $d
+     /tmp/ccmWWXfw.s:526    .bss.hspi2:0000000000000000 $d
 
 UNDEFINED SYMBOLS
 HAL_SPI_Init

@@ -28,6 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "encoder.h"
+#include "ssd1306.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -119,6 +120,7 @@ int main(void)
 	  i++;
 	  retr_cnt_full += pressure[2];
 	  if(i>=999) i=1;
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -166,13 +168,23 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
 
 	if (GPIO_Pin == GPIO_PIN_2 )
 	{
 		NRF24L01_IT();
 	}
 }
+
+
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+  if(hspi->Instance == SPI2)
+    HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_SET);
+
+}
+
 /* USER CODE END 4 */
 
 /**

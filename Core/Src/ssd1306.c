@@ -37,6 +37,7 @@ void ssd1306_WriteCommand(uint8_t byte) {
     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_RESET); // select OLED
     HAL_GPIO_WritePin(SSD1306_DC_Port, SSD1306_DC_Pin, GPIO_PIN_RESET); // command
     HAL_SPI_Transmit(&SSD1306_SPI_PORT, (uint8_t *) &byte, 1, HAL_MAX_DELAY);
+    //HAL_SPI_Transmit_DMA(&SSD1306_SPI_PORT, (uint8_t *) &byte, 1);
     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_SET); // un-select OLED
 }
 
@@ -45,7 +46,16 @@ void ssd1306_WriteData(uint8_t* buffer, size_t buff_size) {
     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_RESET); // select OLED
     HAL_GPIO_WritePin(SSD1306_DC_Port, SSD1306_DC_Pin, GPIO_PIN_SET); // data
     HAL_SPI_Transmit(&SSD1306_SPI_PORT, buffer, buff_size, HAL_MAX_DELAY);
+    //HAL_SPI_Transmit_DMA(&SSD1306_SPI_PORT, buffer, buff_size);
     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_SET); // un-select OLED
+}
+
+void ssd1306_WriteData_DMA(uint8_t* buffer, size_t buff_size) {
+    HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_RESET); // select OLED
+    HAL_GPIO_WritePin(SSD1306_DC_Port, SSD1306_DC_Pin, GPIO_PIN_SET); // data
+    //HAL_SPI_Transmit(&SSD1306_SPI_PORT, buffer, buff_size, HAL_MAX_DELAY);
+    HAL_SPI_Transmit_DMA(&SSD1306_SPI_PORT, buffer, buff_size);
+    //HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_SET); // un-select OLED
 }
 
 #else
@@ -189,12 +199,16 @@ void ssd1306_UpdateScreen(void) {
     //  * 32px   ==  4 pages
     //  * 64px   ==  8 pages
     //  * 128px  ==  16 pages
-    for(uint8_t i = 0; i < SSD1306_HEIGHT/8; i++) {
-        ssd1306_WriteCommand(0xB0 + i); // Set the current RAM page address.
-        ssd1306_WriteCommand(0x00 + SSD1306_X_OFFSET_LOWER);
-        ssd1306_WriteCommand(0x10 + SSD1306_X_OFFSET_UPPER);
-        ssd1306_WriteData(&SSD1306_Buffer[SSD1306_WIDTH*i],SSD1306_WIDTH);
-    }
+    ssd1306_WriteCommand(0xB0);
+    ssd1306_WriteCommand(0x00 + SSD1306_X_OFFSET_LOWER);
+    ssd1306_WriteCommand(0x10 + SSD1306_X_OFFSET_UPPER);
+    ssd1306_WriteData_DMA(SSD1306_Buffer,SSD1306_WIDTH*8);
+    //for(uint8_t i = 0; i < SSD1306_HEIGHT/8; i++) {
+        //ssd1306_WriteCommand(0xB0 + i); // Set the current RAM page address.
+        //ssd1306_WriteCommand(0x00 + SSD1306_X_OFFSET_LOWER);
+        //ssd1306_WriteCommand(0x10 + SSD1306_X_OFFSET_UPPER);
+        //ssd1306_WriteData(&SSD1306_Buffer[SSD1306_WIDTH*i],SSD1306_WIDTH);
+    //}
 }
 
 //    Draw one pixel in the screenbuffer

@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "nrf24.h": "c"
+        "nrf24.h": "c",
+        "stm32f1xx_hal.h": "c",
+        "stm32f1xx_hal_conf.h": "c"
     }
 }
