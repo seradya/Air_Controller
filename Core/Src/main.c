@@ -49,9 +49,11 @@
 
 /* USER CODE BEGIN PV */
 
-uint8_t buf1[5]={0};
+uint8_t buf1[5] = {0};
 uint32_t pressure[4] = {0};
-
+uint8_t sound_time = 0;
+uint8_t short_press = 0;
+uint8_t long_press = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -63,7 +65,6 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-
 /* USER CODE END 0 */
 
 /**
@@ -73,8 +74,8 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t retr_cnt=0, dt;
-	extern uint16_t i,retr_cnt_full;
+  uint8_t retr_cnt = 0, dt;
+  extern uint16_t i, retr_cnt_full;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -97,13 +98,18 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_SPI2_Init();
-  MX_TIM3_Init();
   MX_SPI1_Init();
+  MX_TIM1_Init();
+  MX_TIM3_Init();
+  MX_TIM2_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
   Display_Init();
   Encoder_Init();
   NRF24_ini();
+
+
 
   /* USER CODE END 2 */
 
@@ -113,13 +119,14 @@ int main(void)
   while (1)
   {
 
-	  Main_Screen();
-	  HAL_Delay(1000);
-	  NRF24L01_Send(buf1);
-	  retr_cnt = dt & 0xF;
-	  i++;
-	  retr_cnt_full += pressure[2];
-	  if(i>=999) i=1;
+    Main_Screen();
+    HAL_Delay(1000);
+    NRF24L01_Send(buf1);
+    retr_cnt = dt & 0xF;
+    i++;
+    retr_cnt_full += pressure[2];
+    if (i >= 999)
+      i = 1;
 
     /* USER CODE END WHILE */
 
@@ -171,18 +178,70 @@ void SystemClock_Config(void)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 
-	if (GPIO_Pin == GPIO_PIN_2 )
-	{
-		NRF24L01_IT();
-	}
-}
+  if (GPIO_Pin == GPIO_PIN_2)
+  {
+    NRF24L01_IT();
+  }
 
+  else if (GPIO_Pin == GPIO_PIN_6)
+  {
+    
+    
+    if(!(GPIOB -> IDR & GPIO_PIN_6))
+    {
+      HAL_TIM_Base_Start_IT(&htim4);
+      HAL_TIM_Base_Start_IT(&htim2);
+
+      HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+      TIM1->CCER |= 0x400;
+      sound_time = 1;
+    }
+
+    else 
+    {
+      HAL_TIM_Base_Stop_IT(&htim4);
+      TIM4->CNT = 0;
+      short_press = 1;
+    }
+  }
+}
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  if(hspi->Instance == SPI2)
+  if (hspi->Instance == SPI2)
     HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_SET);
+}
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+        if(htim->Instance == TIM2) //check if the interrupt comes from TIM2
+        {
+          //HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3);
+          HAL_TIM_Base_Start_IT(&htim2);
+          if(sound_time > 0)
+          {
+            sound_time--;
+          }
+          else
+          {
+            TIM1->CCER &= ~0x400;
+            HAL_TIM_Base_Stop_IT(&htim2);
+          }
+        }
+
+        else if(htim->Instance == TIM4) //check if the interrupt comes from TIM2
+        {
+          //HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3);
+          if(!(GPIOB -> IDR & GPIO_PIN_6))
+          {
+            long_press = 1;
+            HAL_TIM_Base_Start_IT(&htim2);
+            HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+            TIM1->CCER |= 0x400;
+            sound_time = 5;
+          }
+          
+        }
 }
 
 /* USER CODE END 4 */

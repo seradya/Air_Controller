@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccTXGKqk.s 			page 1
+ARM GAS  /tmp/ccvQFQqB.s 			page 1
 
 
    1              		.cpu cortex-m3
@@ -58,7 +58,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
   30:Core/Src/ssd1306_tests.c **** 0x00, 0x00, 0x00, 0x01, 0xFF, 0x00, 0x60, 0x00, 0x00, 0x18, 0x7F, 0xFE, 0x00, 0x00, 0x00, 0x00,
   31:Core/Src/ssd1306_tests.c **** 0x00, 0x00, 0x00, 0x03, 0xFF, 0x00, 0xC0, 0x00, 0x00, 0x30, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00,
   32:Core/Src/ssd1306_tests.c **** 0x00, 0x00, 0x00, 0x03, 0x83, 0xE0, 0xC0, 0x00, 0x00, 0x60, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00,
-ARM GAS  /tmp/ccTXGKqk.s 			page 2
+ARM GAS  /tmp/ccvQFQqB.s 			page 2
 
 
   33:Core/Src/ssd1306_tests.c **** 0x00, 0x00, 0x00, 0x07, 0x03, 0x1F, 0xFF, 0xFF, 0xFF, 0xC0, 0x00, 0x03, 0x80, 0x00, 0x00, 0x00,
@@ -118,7 +118,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
   87:Core/Src/ssd1306_tests.c **** 0x0F, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xF0, 0x0F, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xF0,
   88:Core/Src/ssd1306_tests.c **** 0x1F, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xF8, 0x1F, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xF8,
   89:Core/Src/ssd1306_tests.c **** 0x3F, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xFC, 0x3F, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x7F, 0xFC,
-ARM GAS  /tmp/ccTXGKqk.s 			page 3
+ARM GAS  /tmp/ccvQFQqB.s 			page 3
 
 
   90:Core/Src/ssd1306_tests.c **** 0x7F, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xFC, 0x7F, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x1F, 0xFE,
@@ -178,7 +178,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
   51              		.loc 1 119 13 is_stmt 0 view .LVU7
   52 000e 0024     		movs	r4, #0
  118:Core/Src/ssd1306_tests.c ****     uint8_t x = 0;
-ARM GAS  /tmp/ccTXGKqk.s 			page 4
+ARM GAS  /tmp/ccvQFQqB.s 			page 4
 
 
   53              		.loc 1 118 13 view .LVU8
@@ -238,7 +238,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
   90              		.loc 1 136 15 is_stmt 0 view .LVU20
   91 0034 FFF7FEFF 		bl	HAL_GetTick
   92              	.LVL9:
-ARM GAS  /tmp/ccTXGKqk.s 			page 5
+ARM GAS  /tmp/ccvQFQqB.s 			page 5
 
 
  137:Core/Src/ssd1306_tests.c ****     } while((end - start) < 8000);
@@ -298,7 +298,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  133              		.loc 1 126 14 view .LVU36
  134 005e E4B2     		uxtb	r4, r4
  135              	.LVL16:
-ARM GAS  /tmp/ccTXGKqk.s 			page 6
+ARM GAS  /tmp/ccvQFQqB.s 			page 6
 
 
  126:Core/Src/ssd1306_tests.c ****         else if((y == (SSD1306_HEIGHT-1)) && (x > 0)) 
@@ -358,7 +358,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  174      00
  175              		.section	.text.ssd1306_TestFonts,"ax",%progbits
  176              		.align	1
-ARM GAS  /tmp/ccTXGKqk.s 			page 7
+ARM GAS  /tmp/ccvQFQqB.s 			page 7
 
 
  177              		.global	ssd1306_TestFonts
@@ -418,7 +418,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  218 0024 104A     		ldr	r2, .L13+8
  219 0026 0123     		movs	r3, #1
  220 0028 06CA     		ldm	r2, {r1, r2}
-ARM GAS  /tmp/ccTXGKqk.s 			page 8
+ARM GAS  /tmp/ccvQFQqB.s 			page 8
 
 
  221 002a 1048     		ldr	r0, .L13+12
@@ -478,7 +478,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  259 0064 00000000 		.word	.LC1
  260 0068 00000000 		.word	Font_11x18
  261 006c 0C000000 		.word	.LC2
-ARM GAS  /tmp/ccTXGKqk.s 			page 9
+ARM GAS  /tmp/ccvQFQqB.s 			page 9
 
 
  262 0070 00000000 		.word	Font_7x10
@@ -538,7 +538,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  309              	.LCFI3:
  310              		.cfi_def_cfa_offset 104
  173:Core/Src/ssd1306_tests.c ****     ssd1306_Fill(White);
-ARM GAS  /tmp/ccTXGKqk.s 			page 10
+ARM GAS  /tmp/ccvQFQqB.s 			page 10
 
 
  311              		.loc 1 173 5 view .LVU63
@@ -598,7 +598,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  354              		.loc 1 177 9 is_stmt 0 view .LVU75
  355 0046 0025     		movs	r5, #0
  356              	.LVL39:
-ARM GAS  /tmp/ccTXGKqk.s 			page 11
+ARM GAS  /tmp/ccvQFQqB.s 			page 11
 
 
  357              	.L16:
@@ -658,7 +658,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  398              		.loc 1 196 12 is_stmt 1 discriminator 1 view .LVU90
  399              		.loc 1 196 18 is_stmt 0 discriminator 1 view .LVU91
  400 007a 841B     		subs	r4, r0, r6
-ARM GAS  /tmp/ccTXGKqk.s 			page 12
+ARM GAS  /tmp/ccvQFQqB.s 			page 12
 
 
  401              	.LVL47:
@@ -718,7 +718,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  449              		.loc 1 202 5 is_stmt 0 view .LVU103
  450 00c0 FFF7FEFF 		bl	snprintf
  451              	.LVL59:
-ARM GAS  /tmp/ccTXGKqk.s 			page 13
+ARM GAS  /tmp/ccvQFQqB.s 			page 13
 
 
  203:Core/Src/ssd1306_tests.c ****    
@@ -778,7 +778,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  500              		@ args = 0, pretend = 0, frame = 0
  501              		@ frame_needed = 0, uses_anonymous_args = 0
  502 0000 10B5     		push	{r4, lr}
-ARM GAS  /tmp/ccTXGKqk.s 			page 14
+ARM GAS  /tmp/ccvQFQqB.s 			page 14
 
 
  503              	.LCFI5:
@@ -838,7 +838,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  551              		@ args = 0, pretend = 0, frame = 0
  552              		@ frame_needed = 0, uses_anonymous_args = 0
  553 0000 10B5     		push	{r4, lr}
-ARM GAS  /tmp/ccTXGKqk.s 			page 15
+ARM GAS  /tmp/ccvQFQqB.s 			page 15
 
 
  554              	.LCFI8:
@@ -898,7 +898,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  226:Core/Src/ssd1306_tests.c **** }
  597              		.loc 1 226 1 is_stmt 0 view .LVU127
  598 0032 02B0     		add	sp, sp, #8
-ARM GAS  /tmp/ccTXGKqk.s 			page 16
+ARM GAS  /tmp/ccvQFQqB.s 			page 16
 
 
  599              	.LCFI10:
@@ -958,7 +958,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  647              	.LVL75:
  648              	.L27:
  231:Core/Src/ssd1306_tests.c ****     ssd1306_DrawCircle(20* delta+30, 15, 10, White);
-ARM GAS  /tmp/ccTXGKqk.s 			page 17
+ARM GAS  /tmp/ccvQFQqB.s 			page 17
 
 
  649              		.loc 1 231 18 is_stmt 1 discriminator 1 view .LVU137
@@ -1018,7 +1018,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  696              	.LVL78:
  241:Core/Src/ssd1306_tests.c ****   return;
  697              		.loc 1 241 3 view .LVU146
-ARM GAS  /tmp/ccTXGKqk.s 			page 18
+ARM GAS  /tmp/ccvQFQqB.s 			page 18
 
 
  242:Core/Src/ssd1306_tests.c **** }
@@ -1078,7 +1078,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  739              	.LVL79:
  257:Core/Src/ssd1306_tests.c ****   ssd1306_UpdateScreen();
  740              		.loc 1 257 3 view .LVU152
-ARM GAS  /tmp/ccTXGKqk.s 			page 19
+ARM GAS  /tmp/ccvQFQqB.s 			page 19
 
 
  741 001c FFF7FEFF 		bl	ssd1306_UpdateScreen
@@ -1138,7 +1138,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  790 0012 8023     		movs	r3, #128
  791 0014 164A     		ldr	r2, .L38
  792 0016 2146     		mov	r1, r4
-ARM GAS  /tmp/ccTXGKqk.s 			page 20
+ARM GAS  /tmp/ccvQFQqB.s 			page 20
 
 
  793 0018 2046     		mov	r0, r4
@@ -1198,7 +1198,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  838              		.loc 1 273 5 view .LVU166
  839 0066 FFF7FEFF 		bl	ssd1306_UpdateScreen
  840              	.LVL91:
-ARM GAS  /tmp/ccTXGKqk.s 			page 21
+ARM GAS  /tmp/ccvQFQqB.s 			page 21
 
 
  274:Core/Src/ssd1306_tests.c **** }
@@ -1258,7 +1258,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  282:Core/Src/ssd1306_tests.c ****     HAL_Delay(3000);
  889              		.loc 1 282 5 view .LVU174
  890 001a 40F6B830 		movw	r0, #3000
-ARM GAS  /tmp/ccTXGKqk.s 			page 22
+ARM GAS  /tmp/ccvQFQqB.s 			page 22
 
 
  891 001e FFF7FEFF 		bl	HAL_Delay
@@ -1318,7 +1318,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  933              		.loc 1 294 5 view .LVU186
  934 0062 FFF7FEFF 		bl	ssd1306_TestCircle
  935              	.LVL109:
-ARM GAS  /tmp/ccTXGKqk.s 			page 23
+ARM GAS  /tmp/ccvQFQqB.s 			page 23
 
 
  295:Core/Src/ssd1306_tests.c ****     HAL_Delay(3000);
@@ -1378,7 +1378,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  980      FF
  981 0027 F87FE000 		.ascii	"\370\177\340\000\000\000\000\000\000\000\000\000\000"
  981      00000000 
-ARM GAS  /tmp/ccTXGKqk.s 			page 24
+ARM GAS  /tmp/ccvQFQqB.s 			page 24
 
 
  981      00000000 
@@ -1438,7 +1438,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  995 00e5 E00C0000 		.ascii	"\340\014\000\000\014\007\377\370\000\000\000\000\000"
  995      0C07FFF8 
  995      00000000 
-ARM GAS  /tmp/ccTXGKqk.s 			page 25
+ARM GAS  /tmp/ccvQFQqB.s 			page 25
 
 
  995      00
@@ -1498,7 +1498,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  1009      04CF8000 
  1009      00000000 
  1009      000F
-ARM GAS  /tmp/ccTXGKqk.s 			page 26
+ARM GAS  /tmp/ccvQFQqB.s 			page 26
 
 
  1010 01b4 300FC000 		.ascii	"0\017\300\000\030\000\000\217\200\000\000\000\000\000"
@@ -1558,7 +1558,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  1023      00000000 
  1023      1800
  1024 0276 000000A4 		.ascii	"\000\000\000\244\360\000\000\000\000\000\000\000\000"
-ARM GAS  /tmp/ccTXGKqk.s 			page 27
+ARM GAS  /tmp/ccvQFQqB.s 			page 27
 
 
  1024      F0000000 
@@ -1618,7 +1618,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  1037      0300
  1038 0338 0000FDF0 		.ascii	"\000\000\375\360\000\000\000\000\000\000\0000\000\000"
  1038      00000000 
-ARM GAS  /tmp/ccTXGKqk.s 			page 28
+ARM GAS  /tmp/ccvQFQqB.s 			page 28
 
 
  1038      00000030 
@@ -1678,7 +1678,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  1052 03f5 03FFE0C0 		.ascii	"\003\377\340\300?\236\000\000\000\000\000"
  1052      3F9E0000 
  1052      000000
-ARM GAS  /tmp/ccTXGKqk.s 			page 29
+ARM GAS  /tmp/ccvQFQqB.s 			page 29
 
 
  1053              		.section	.rodata.github_logo_64x64,"a"
@@ -1738,7 +1738,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  1071      00007FFC 
  1071      7FFC00
  1072 00b3 0000003F 		.ascii	"\000\000\000?\374\177\374\000\000\000\000\037\376\177"
-ARM GAS  /tmp/ccTXGKqk.s 			page 30
+ARM GAS  /tmp/ccvQFQqB.s 			page 30
 
 
  1072      FC7FFC00 
@@ -1798,7 +1798,7 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  1085      3FFF
  1086 016f F80FC3FF 		.ascii	"\370\017\303\377\300\001\377\377\360\017\341\377\200"
  1086      C001FFFF 
-ARM GAS  /tmp/ccTXGKqk.s 			page 31
+ARM GAS  /tmp/ccvQFQqB.s 			page 31
 
 
  1086      F00FE1FF 
@@ -1851,42 +1851,42 @@ ARM GAS  /tmp/ccTXGKqk.s 			page 1
  1103              		.file 6 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
  1104              		.file 7 "/home/seradya/toolchains/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/string.h"
  1105              		.file 8 "/home/seradya/toolchains/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/stdio.h"
-ARM GAS  /tmp/ccTXGKqk.s 			page 32
+ARM GAS  /tmp/ccvQFQqB.s 			page 32
 
 
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 ssd1306_tests.c
-     /tmp/ccTXGKqk.s:18     .text.ssd1306_TestBorder:0000000000000000 $t
-     /tmp/ccTXGKqk.s:24     .text.ssd1306_TestBorder:0000000000000000 ssd1306_TestBorder
-     /tmp/ccTXGKqk.s:163    .rodata.ssd1306_TestFonts.str1.4:0000000000000000 $d
-     /tmp/ccTXGKqk.s:176    .text.ssd1306_TestFonts:0000000000000000 $t
-     /tmp/ccTXGKqk.s:182    .text.ssd1306_TestFonts:0000000000000000 ssd1306_TestFonts
-     /tmp/ccTXGKqk.s:258    .text.ssd1306_TestFonts:0000000000000060 $d
-     /tmp/ccTXGKqk.s:270    .rodata.ssd1306_TestFPS.str1.4:0000000000000000 $d
-     /tmp/ccTXGKqk.s:288    .text.ssd1306_TestFPS:0000000000000000 $t
-     /tmp/ccTXGKqk.s:294    .text.ssd1306_TestFPS:0000000000000000 ssd1306_TestFPS
-     /tmp/ccTXGKqk.s:480    .text.ssd1306_TestFPS:00000000000000e8 $d
-     /tmp/ccTXGKqk.s:490    .text.ssd1306_TestLine:0000000000000000 $t
-     /tmp/ccTXGKqk.s:496    .text.ssd1306_TestLine:0000000000000000 ssd1306_TestLine
-     /tmp/ccTXGKqk.s:541    .text.ssd1306_TestRectangle:0000000000000000 $t
-     /tmp/ccTXGKqk.s:547    .text.ssd1306_TestRectangle:0000000000000000 ssd1306_TestRectangle
-     /tmp/ccTXGKqk.s:608    .text.ssd1306_TestCircle:0000000000000000 $t
-     /tmp/ccTXGKqk.s:614    .text.ssd1306_TestCircle:0000000000000000 ssd1306_TestCircle
-     /tmp/ccTXGKqk.s:664    .text.ssd1306_TestArc:0000000000000000 $t
-     /tmp/ccTXGKqk.s:670    .text.ssd1306_TestArc:0000000000000000 ssd1306_TestArc
-     /tmp/ccTXGKqk.s:708    .text.ssd1306_TestPolyline:0000000000000000 $t
-     /tmp/ccTXGKqk.s:714    .text.ssd1306_TestPolyline:0000000000000000 ssd1306_TestPolyline
-     /tmp/ccTXGKqk.s:753    .text.ssd1306_TestPolyline:0000000000000028 $d
-     /tmp/ccTXGKqk.s:758    .text.ssd1306_TestDrawBitmap:0000000000000000 $t
-     /tmp/ccTXGKqk.s:764    .text.ssd1306_TestDrawBitmap:0000000000000000 ssd1306_TestDrawBitmap
-     /tmp/ccTXGKqk.s:850    .text.ssd1306_TestDrawBitmap:0000000000000070 $d
-     /tmp/ccTXGKqk.s:856    .text.ssd1306_TestAll:0000000000000000 $t
-     /tmp/ccTXGKqk.s:862    .text.ssd1306_TestAll:0000000000000000 ssd1306_TestAll
-     /tmp/ccTXGKqk.s:1058   .rodata.github_logo_64x64:0000000000000000 github_logo_64x64
-     /tmp/ccTXGKqk.s:977    .rodata.garfield_128x64:0000000000000000 garfield_128x64
-     /tmp/ccTXGKqk.s:955    .rodata:0000000000000000 $d
-     /tmp/ccTXGKqk.s:973    .rodata.garfield_128x64:0000000000000000 $d
-     /tmp/ccTXGKqk.s:1054   .rodata.github_logo_64x64:0000000000000000 $d
+     /tmp/ccvQFQqB.s:18     .text.ssd1306_TestBorder:0000000000000000 $t
+     /tmp/ccvQFQqB.s:24     .text.ssd1306_TestBorder:0000000000000000 ssd1306_TestBorder
+     /tmp/ccvQFQqB.s:163    .rodata.ssd1306_TestFonts.str1.4:0000000000000000 $d
+     /tmp/ccvQFQqB.s:176    .text.ssd1306_TestFonts:0000000000000000 $t
+     /tmp/ccvQFQqB.s:182    .text.ssd1306_TestFonts:0000000000000000 ssd1306_TestFonts
+     /tmp/ccvQFQqB.s:258    .text.ssd1306_TestFonts:0000000000000060 $d
+     /tmp/ccvQFQqB.s:270    .rodata.ssd1306_TestFPS.str1.4:0000000000000000 $d
+     /tmp/ccvQFQqB.s:288    .text.ssd1306_TestFPS:0000000000000000 $t
+     /tmp/ccvQFQqB.s:294    .text.ssd1306_TestFPS:0000000000000000 ssd1306_TestFPS
+     /tmp/ccvQFQqB.s:480    .text.ssd1306_TestFPS:00000000000000e8 $d
+     /tmp/ccvQFQqB.s:490    .text.ssd1306_TestLine:0000000000000000 $t
+     /tmp/ccvQFQqB.s:496    .text.ssd1306_TestLine:0000000000000000 ssd1306_TestLine
+     /tmp/ccvQFQqB.s:541    .text.ssd1306_TestRectangle:0000000000000000 $t
+     /tmp/ccvQFQqB.s:547    .text.ssd1306_TestRectangle:0000000000000000 ssd1306_TestRectangle
+     /tmp/ccvQFQqB.s:608    .text.ssd1306_TestCircle:0000000000000000 $t
+     /tmp/ccvQFQqB.s:614    .text.ssd1306_TestCircle:0000000000000000 ssd1306_TestCircle
+     /tmp/ccvQFQqB.s:664    .text.ssd1306_TestArc:0000000000000000 $t
+     /tmp/ccvQFQqB.s:670    .text.ssd1306_TestArc:0000000000000000 ssd1306_TestArc
+     /tmp/ccvQFQqB.s:708    .text.ssd1306_TestPolyline:0000000000000000 $t
+     /tmp/ccvQFQqB.s:714    .text.ssd1306_TestPolyline:0000000000000000 ssd1306_TestPolyline
+     /tmp/ccvQFQqB.s:753    .text.ssd1306_TestPolyline:0000000000000028 $d
+     /tmp/ccvQFQqB.s:758    .text.ssd1306_TestDrawBitmap:0000000000000000 $t
+     /tmp/ccvQFQqB.s:764    .text.ssd1306_TestDrawBitmap:0000000000000000 ssd1306_TestDrawBitmap
+     /tmp/ccvQFQqB.s:850    .text.ssd1306_TestDrawBitmap:0000000000000070 $d
+     /tmp/ccvQFQqB.s:856    .text.ssd1306_TestAll:0000000000000000 $t
+     /tmp/ccvQFQqB.s:862    .text.ssd1306_TestAll:0000000000000000 ssd1306_TestAll
+     /tmp/ccvQFQqB.s:1058   .rodata.github_logo_64x64:0000000000000000 github_logo_64x64
+     /tmp/ccvQFQqB.s:977    .rodata.garfield_128x64:0000000000000000 garfield_128x64
+     /tmp/ccvQFQqB.s:955    .rodata:0000000000000000 $d
+     /tmp/ccvQFQqB.s:973    .rodata.garfield_128x64:0000000000000000 $d
+     /tmp/ccvQFQqB.s:1054   .rodata.github_logo_64x64:0000000000000000 $d
 
 UNDEFINED SYMBOLS
 ssd1306_Fill
@@ -1911,7 +1911,7 @@ ssd1306_Line
 ssd1306_DrawRectangle
 ssd1306_DrawCircle
 ssd1306_DrawArc
-ARM GAS  /tmp/ccTXGKqk.s 			page 33
+ARM GAS  /tmp/ccvQFQqB.s 			page 33
 
 
 ssd1306_Polyline
